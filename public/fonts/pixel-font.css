@@ -1,0 +1,17 @@
+/* 本地像素字体定义 */
+
+@font-face {
+  font-family: "ArkPixel";
+  src: url("/fonts/ark-pixel-12px.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "ArkPixel16";
+  src: url("/fonts/ark-pixel-16px.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}

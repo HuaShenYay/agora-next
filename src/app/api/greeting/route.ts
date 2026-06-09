@@ -1,0 +1,83 @@
+import { NextRequest, NextResponse } from "next/server";
+
+export async function POST(req: NextRequest) {
+  try {
+    const data = await req.json();
+    const { name, email, message } = data;
+
+    if (!name || !email) {
+      return NextResponse.json(
+        { error: "Name and Email are required" },
+        { status: 400 }
+      );
+    }
+
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
+    const NOTIFICATION_EMAIL =
+      process.env.NOTIFICATION_EMAIL || "bigdickgod@icloud.com";
+
+    if (!RESEND_API_KEY) {
+      console.warn("RESEND_API_KEY is not set. Falling back to mock behavior.");
+      console.log(
+        `[Greeting Received] Name: ${name}, Email: ${email}, Message: ${message}`
+      );
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      return NextResponse.json({
+        success: true,
+        message: "Mock success (API Key missing)",
+      });
+    }
+
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: "Agora Landing <onboarding@resend.dev>",
+        to: NOTIFICATION_EMAIL,
+        subject: `✨ 新申请: ${name} 加入集市`,
+        html: `
+          <div style="font-family: sans-serif; padding: 20px; color: #333;">
+            <h2 style="color: #a84c32;">新申请通知</h2>
+            <p>有人对 <strong>集市 AGORA</strong> 感兴趣了！</p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+            <p><strong>姓名:</strong> ${name}</p>
+            <p><strong>邮箱:</strong> ${email}</p>
+            <p><strong>留言:</strong> ${message || "（无）"}</p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+            <p style="font-size: 12px; color: #888;">这是一条来自 Agora Landing Page 的自动通知。</p>
+          </div>
+        `,
+      }),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error("Resend API error:", errText);
+      let errorMessage = "Failed to send email via Resend";
+      try {
+        const errData = JSON.parse(errText);
+        errorMessage = errData.message || errorMessage;
+      } catch {
+        errorMessage = errText || errorMessage;
+      }
+      return NextResponse.json({ error: errorMessage }, { status: 500 });
+    }
+
+    const resData = await res.json();
+    console.log("Email sent successfully:", resData.id);
+
+    return NextResponse.json({
+      success: true,
+      message: "Greeting received and email sent",
+    });
+  } catch (err) {
+    console.error("Internal Server Error:", err);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+}
