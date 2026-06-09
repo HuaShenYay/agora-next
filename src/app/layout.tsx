@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import NavBar from "@/components/client/shared/NavBar";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -32,8 +31,6 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <NavBar />
-
         {/* 马赛克溶解载入动画（仅首页使用） */}
         <div id="mosaic-loader" className="mosaic-loader">
           <div className="mosaic-grid" id="mosaic-grid"></div>
@@ -41,7 +38,6 @@ export default function RootLayout({
 
         {children}
 
-        <Script src="/font-loader.js" strategy="beforeInteractive" />
         <Script src="/effects.js" strategy="lazyOnload" />
         <Script src="/loader.js" strategy="afterInteractive" />
       </body>

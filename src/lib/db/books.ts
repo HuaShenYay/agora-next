@@ -1,5 +1,5 @@
 // ====================
-// 书籍 PostgreSQL 存储操作
+// 书籍 PostgreSQL 存储操作（精简版：仅书库 + 上下传 + 阅读所需字段）
 // ====================
 
 import { getSupabase } from "@/lib/supabase/client";
@@ -21,14 +21,13 @@ function rowToBook(row: Record<string, unknown>): Book {
     language: (row.language as string) ?? "en",
     categories: (row.categories as string[]) ?? [],
     tags: (row.tags as string[]) ?? [],
-    chapterCount: (row.chapter_count as number) ?? 0,
-    uploaderId: row.uploader_id as string,
-    forkCount: (row.fork_count as number) ?? 0,
-    prCount: (row.pr_count as number) ?? 0,
-    mergedPrCount: (row.merged_pr_count as number) ?? 0,
+    chapterCount: 0,
+    uploaderId: (row.uploader_id as string) ?? "anonymous",
+    forkCount: 0,
+    prCount: 0,
+    mergedPrCount: 0,
     status: (row.status as Book["status"]) ?? "active",
-    classificationStatus: (row.classification_status as Book["classificationStatus"]) ?? "pending",
-    aiClassification: row.ai_classification as Book["aiClassification"],
+    classificationStatus: "pending",
     coverUrl: row.cover_url as string | undefined,
     createdAt: (row.created_at as string) ?? new Date().toISOString(),
     updatedAt: (row.updated_at as string) ?? new Date().toISOString(),
@@ -50,9 +49,12 @@ export async function getBook(bookId: string): Promise<Book | null> {
   return rowToBook(data);
 }
 
-export async function saveBook(book: Book): Promise<void> {
+export async function saveBook(
+  book: Book,
+  extras?: { storagePath?: string; sizeBytes?: number },
+): Promise<void> {
   const supabase = getSupabase();
-  const row = {
+  const row: Record<string, unknown> = {
     id: book.id,
     title: book.title,
     title_original: book.titleOriginal,
@@ -62,21 +64,26 @@ export async function saveBook(book: Book): Promise<void> {
     language: book.language,
     categories: book.categories,
     tags: book.tags,
-    chapter_count: book.chapterCount,
     uploader_id: book.uploaderId,
-    fork_count: book.forkCount,
-    pr_count: book.prCount,
-    merged_pr_count: book.mergedPrCount,
     status: book.status,
-    classification_status: book.classificationStatus,
-    ai_classification: book.aiClassification,
     cover_url: book.coverUrl,
     updated_at: new Date().toISOString(),
   };
-  const { error } = await supabase
-    .from("books")
-    .upsert(row, { onConflict: "id" });
+  if (extras?.storagePath) row.storage_path = extras.storagePath;
+  if (typeof extras?.sizeBytes === "number") row.size_bytes = extras.sizeBytes;
+  const { error } = await supabase.from("books").upsert(row, { onConflict: "id" });
   if (error) throw new Error(`saveBook failed: ${error.message}`);
+}
+
+export async function getBookStoragePath(bookId: string): Promise<string | null> {
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from("books")
+    .select("storage_path")
+    .eq("id", bookId)
+    .single();
+  if (error || !data) return null;
+  return (data.storage_path as string | null) ?? null;
 }
 
 export async function deleteBook(bookId: string): Promise<void> {
@@ -95,21 +102,14 @@ export async function deleteBook(bookId: string): Promise<void> {
 export async function listBooks(filters?: {
   category?: string;
   language?: string;
-  status?: string;
   search?: string;
   page?: number;
   pageSize?: number;
 }): Promise<{ books: BookSummary[]; total: number }> {
   const supabase = getSupabase();
-  let query = supabase
-    .from("books")
-    .select("*", { count: "exact" });
+  let query = supabase.from("books").select("*", { count: "exact" });
 
-  if (filters?.status) {
-    query = query.eq("status", filters.status);
-  } else {
-    query = query.eq("status", "active");
-  }
+  query = query.eq("status", "active");
   if (filters?.language) {
     query = query.eq("language", filters.language);
   }
@@ -138,17 +138,6 @@ export async function listBooks(filters?: {
   return { books, total: count ?? 0 };
 }
 
-export async function updateBookPartial(
-  bookId: string,
-  updates: Partial<Book>,
-): Promise<Book | null> {
-  const book = await getBook(bookId);
-  if (!book) return null;
-  Object.assign(book, updates);
-  await saveBook(book);
-  return book;
-}
-
 export async function getBookCount(status?: string): Promise<number> {
   const supabase = getSupabase();
   let query = supabase.from("books").select("*", { count: "exact", head: true });
@@ -168,11 +157,4 @@ export async function getAllBooks(): Promise<Book[]> {
     .order("created_at", { ascending: false });
   if (error || !data) return [];
   return data.map(rowToBook);
-}
-
-export async function updateBooksIndexSummary(
-  bookId: string,
-  updates: Partial<BookSummary>,
-): Promise<void> {
-  await updateBookPartial(bookId, updates);
 }

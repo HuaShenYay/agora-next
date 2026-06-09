@@ -62,9 +62,6 @@ export default function NavBar() {
         <div className="nav-links">
           <Link href="/books" className="nav-link">书库</Link>
           <Link href="/books/upload" className="nav-link">上传</Link>
-          {user?.role === "admin" && (
-            <Link href="/admin" className="nav-link nav-link--admin">管理</Link>
-          )}
         </div>
         <div className="nav-user">
           {user ? (

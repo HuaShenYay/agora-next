@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 
 const PixelFlower = ({ className = "" }: { className?: string }) => (
   <svg className={className} width="40" height="40" viewBox="0 0 12 12" fill="currentColor">
@@ -190,7 +191,7 @@ export default function Hero() {
           <div className="hero-row hero-row-2">
             <span className="hero-word animate-gentle-bounce">思想的</span>
             <PixelFlower className="hero-icon-tight" />
-            <div style={{ position: "relative", width: "125px", height: "1.2em", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ position: "relative", width: "125px", height: "1.2em", display: "flex", alignItems: "center", justifyContent: "center", marginLeft: "1.25rem" }}>
               <span className="hero-word animate-blur-cycle">缪斯园地</span>
             </div>
             <FlippingBook className="hero-icon-tight" />
@@ -208,6 +209,10 @@ export default function Hero() {
           </div>
         </div>
         <div className="cta-section">
+          <Link href="/books" className="cta-button">
+            <span className="cta-text">进入书库</span>
+            <PixelArrowRight className="cta-icon" />
+          </Link>
           <button type="button" className="cta-button outline btn-apple" onClick={() => setModalOpen(true)}>
             <span className="cta-text">发送问候 / 提交个人申请</span>
             <PixelArrowRight className="cta-icon" />
