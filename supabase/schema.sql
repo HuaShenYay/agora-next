@@ -28,6 +28,9 @@ CREATE TABLE IF NOT EXISTS books (
   classification_status TEXT DEFAULT 'pending',
   ai_classification JSONB,
   cover_url TEXT,
+  content_markdown TEXT DEFAULT '',
+  storage_path TEXT DEFAULT '',
+  size_bytes BIGINT,
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
@@ -38,6 +41,65 @@ CREATE INDEX IF NOT EXISTS idx_books_language ON books(language);
 CREATE INDEX IF NOT EXISTS idx_books_categories ON books USING GIN(categories);
 CREATE INDEX IF NOT EXISTS idx_books_tags ON books USING GIN(tags);
 CREATE INDEX IF NOT EXISTS idx_books_created_at ON books(created_at DESC);
+
+-- ====================
+-- 幂等迁移：补齐新增列（兼容已存在的旧 books 表）
+-- ====================
+ALTER TABLE books ADD COLUMN IF NOT EXISTS storage_path TEXT DEFAULT '';
+ALTER TABLE books ADD COLUMN IF NOT EXISTS size_bytes BIGINT;
+
+-- ====================
+-- AI 优化元数据（异步任务写入）
+-- ====================
+ALTER TABLE books ADD COLUMN IF NOT EXISTS ai_status TEXT DEFAULT 'idle';
+--   idle / pending / done / failed
+ALTER TABLE books ADD COLUMN IF NOT EXISTS ai_metadata JSONB;
+ALTER TABLE books ADD COLUMN IF NOT EXISTS ai_error TEXT;
+ALTER TABLE books ADD COLUMN IF NOT EXISTS ai_updated_at TIMESTAMPTZ;
+
+CREATE INDEX IF NOT EXISTS idx_books_ai_status ON books(ai_status);
+
+-- ====================
+-- 用户档案（Supabase Auth 配套）
+-- id 与 auth.users.id 一致；显示名 / 头像 / 简介
+-- ====================
+CREATE TABLE IF NOT EXISTS profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  display_name TEXT NOT NULL DEFAULT 'Anonymous',
+  avatar_url TEXT,
+  bio TEXT DEFAULT '',
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all access for demo" ON profiles FOR ALL USING (true) WITH CHECK (true);
+
+-- ====================
+-- 触发器：新 auth.users 注册时自动创建 profile
+-- ====================
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  INSERT INTO public.profiles (id, display_name, avatar_url)
+  VALUES (
+    NEW.id,
+    COALESCE(NEW.raw_user_meta_data->>'display_name', split_part(NEW.email, '@', 1)),
+    NEW.raw_user_meta_data->>'avatar_url'
+  )
+  ON CONFLICT (id) DO NOTHING;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- ====================
 -- 章节表（章节元数据）

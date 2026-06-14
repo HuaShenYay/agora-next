@@ -10,6 +10,7 @@ export interface Book {
   titleOriginal: string;
   author: string;
   description: string;
+  shortDescription?: string;
   coverUrl?: string;
   format: BookFormat;
   language: string;
@@ -22,6 +23,8 @@ export interface Book {
   mergedPrCount: number;
   status: "active" | "archived";
   classificationStatus: "pending" | "processing" | "done" | "failed";
+  /** 提取后的 Markdown 全文（数据库只存这个） */
+  contentMarkdown?: string;
   createdAt: string;
   updatedAt: string;
 }

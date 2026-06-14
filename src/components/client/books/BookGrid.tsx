@@ -2,10 +2,37 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { BookSummary } from "@/lib/utils/types";
-import { DEFAULT_CATEGORIES } from "@/lib/utils/constants";
+import { DEFAULT_CATEGORIES, FLAT_CATEGORY_MAP } from "@/lib/utils/constants";
 import BookCard from "./BookCard";
 
-const categoryNames = Object.fromEntries(DEFAULT_CATEGORIES.map((c) => [c.id, c.name]));
+/* Pixel Temple — 与主页同源的像素雅典神殿 SVG */
+const PixelTemple = ({ className = "" }: { className?: string }) => (
+  <svg className={className} width="80" height="64" viewBox="0 0 20 16" fill="currentColor">
+    <rect x="9" y="0" width="2" height="1" />
+    <rect x="7" y="1" width="6" height="1" />
+    <rect x="5" y="2" width="10" height="1" />
+    <rect x="3" y="3" width="14" height="1" />
+    <rect x="2" y="4" width="16" height="1" />
+    <rect x="3" y="5" width="2" height="7" />
+    <rect x="7" y="5" width="2" height="7" />
+    <rect x="11" y="5" width="2" height="7" />
+    <rect x="15" y="5" width="2" height="7" />
+    <rect x="2" y="12" width="16" height="1" />
+    <rect x="1" y="13" width="18" height="1" />
+    <rect x="0" y="14" width="20" height="2" />
+  </svg>
+);
+
+// 扁平化所有分类：门类标题 + 子分类按钮
+const flatCategories: Array<{ type: "group"; id: string; name: string; emoji: string } | { type: "item"; id: string; name: string }> = [];
+for (const cat of DEFAULT_CATEGORIES) {
+  flatCategories.push({ type: "group", id: cat.id, name: cat.name, emoji: cat.emoji });
+  if (cat.children) {
+    for (const sub of cat.children) {
+      flatCategories.push({ type: "item", id: sub.id, name: sub.name });
+    }
+  }
+}
 
 interface Props { initialCategory?: string; initialSearch?: string; }
 
@@ -48,25 +75,41 @@ export default function BookGrid({ initialCategory, initialSearch }: Props) {
     setPage(1);
   };
   const totalPages = Math.ceil(total / 20);
-  const activeCategoryLabel = category ? (categoryNames[category] ?? category) : "全部";
+  const activeCategoryLabel = category ? (FLAT_CATEGORY_MAP[category] ?? category) : "全部";
 
   return (
     <section className="lib">
-      {/* ====== 顶部：索引栏 ====== */}
+      {/* ====== Hero 头部（含搜索 + 分类） ====== */}
       <header className="lib-header">
-        <div className="lib-header-row">
-          <span className="lib-eyebrow">LIBRARY / INDEX</span>
-          <span className="lib-count">{String(total).padStart(3, "0")} VOLUMES</span>
+        {/* 顶部栏：标识 + 统计 */}
+        <div className="lib-header-top">
+          <div className="lib-header-brand">
+            <PixelTemple className="lib-header-temple" />
+            <div>
+              <span className="lib-eyebrow">LIBRARY / 书库</span>
+              <h1 className="lib-title">
+                学术<span className="lib-title-accent">书库</span>
+              </h1>
+            </div>
+          </div>
+          <div className="lib-stats">
+            <div className="lib-stat">
+              <span className="lib-stat-value">{loading ? "—" : total}</span>
+              <span className="lib-stat-label">册藏书</span>
+            </div>
+            <div className="lib-stat">
+              <span className="lib-stat-value">{DEFAULT_CATEGORIES.length}</span>
+              <span className="lib-stat-label">个学科</span>
+            </div>
+          </div>
         </div>
-        <h1 className="lib-title">学术书库</h1>
-        <p className="lib-subtitle">
-          开源、协作的经典学术翻译与阅读库 ——
-          按学科筛选，或在搜索框中键入作者与书名。
-        </p>
-      </header>
 
-      {/* ====== 工具区：搜索 + 过滤 ====== */}
-      <div className="lib-toolbar">
+        {/* 副标题 */}
+        <p className="lib-subtitle">
+          开源、协作的经典学术翻译与阅读库 —— 按学科筛选，或在搜索框中键入作者与书名。
+        </p>
+
+        {/* 搜索栏（嵌入 header） */}
         <form className="lib-search" onSubmit={handleSearch}>
           <span className="lib-search-mark">⌕</span>
           <input
@@ -78,25 +121,35 @@ export default function BookGrid({ initialCategory, initialSearch }: Props) {
           />
           <button type="submit" className="lib-search-btn">GO</button>
         </form>
-        <span className="lib-toolbar-divider" aria-hidden />
-        <div className="lib-filters">
+
+        {/* 分类栏：门类标题 + 子分类全部展开 */}
+        <div className="lib-categories">
           <button
-            className={`lib-filter ${!category ? "is-active" : ""}`}
+            className={`lib-cat-item lib-cat-all ${!category ? "is-active" : ""}`}
             onClick={() => { setCategory(""); setPage(1); }}
           >
-            全部
+            📚 全部
           </button>
-          {DEFAULT_CATEGORIES.map((c) => (
-            <button
-              key={c.id}
-              className={`lib-filter ${category === c.id ? "is-active" : ""}`}
-              onClick={() => { setCategory(c.id); setPage(1); }}
-            >
-              {c.name}
-            </button>
+          {DEFAULT_CATEGORIES.map((cat) => (
+            <div key={cat.id} className="lib-cat-group">
+              <span className="lib-cat-group-label">
+                <em className="lib-cat-group-emoji">{cat.emoji}</em>{cat.name}
+              </span>
+              <div className="lib-cat-children">
+                {cat.children?.map((sub) => (
+                  <button
+                    key={sub.id}
+                    className={`lib-cat-item ${category === sub.id ? "is-active" : ""}`}
+                    onClick={() => { setCategory(sub.id); setPage(1); }}
+                  >
+                    {sub.name}
+                  </button>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
-      </div>
+      </header>
 
       {/* ====== 当前视图元数据 ====== */}
       <div className="lib-meta">
@@ -113,7 +166,10 @@ export default function BookGrid({ initialCategory, initialSearch }: Props) {
 
       {/* ====== 内容区 ====== */}
       {loading ? (
-        <div className="lib-state">LOADING…</div>
+        <div className="lib-state">
+          <p className="lib-state-title">LOADING…</p>
+          <p className="lib-state-desc">正在加载书库索引。</p>
+        </div>
       ) : books.length === 0 ? (
         <div className="lib-state">
           <p className="lib-state-title">EMPTY SHELF</p>
@@ -121,11 +177,11 @@ export default function BookGrid({ initialCategory, initialSearch }: Props) {
           <Link href="/books/upload" className="lib-state-cta">+ 上传第一本</Link>
         </div>
       ) : (
-        <ol className="lib-grid" start={(page - 1) * 20 + 1}>
+        <div className="lib-grid">
           {books.map((book, i) => (
             <BookCard key={book.id} book={book} index={(page - 1) * 20 + i + 1} />
           ))}
-        </ol>
+        </div>
       )}
 
       {/* ====== 分页 ====== */}

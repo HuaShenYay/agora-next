@@ -1,124 +1,228 @@
+// ====================
+// BookReader — 完整阅读器
+// 功能：toolbar / 三主题 / 字号 / TOC 侧栏 / 进度条 / 回到顶部 / 键盘快捷键
+// ====================
+
 "use client";
-import { useEffect, useRef, useState } from "react";
-import type { BookFormat } from "@/lib/utils/types";
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { marked } from "marked";
+import ReaderToolbar, { type FontSize, type ReaderTheme } from "./ReaderToolbar";
+import ReaderProgress from "./ReaderProgress";
+import BookToc from "./BookToc";
+import { extractChapters, injectHeadingIds, type Chapter } from "@/lib/utils/markdown";
 
 interface Props {
-  format: BookFormat;
-  fileUrl: string;
+  content: string;
+  bookId: string;
+  title: string;
+  author: string;
 }
 
-type Status = "loading" | "ready" | "error";
+const STORAGE_KEY = "agora:reader:prefs:v1";
 
-export default function BookReader({ format, fileUrl }: Props) {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const [status, setStatus] = useState<Status>("loading");
-  const [errorMsg, setErrorMsg] = useState("");
-  const [page, setPage] = useState(1);
-  const [numPages, setNumPages] = useState(0);
-  const [textContent, setTextContent] = useState("");
+interface PersistedPrefs {
+  fontSize: FontSize;
+  theme: ReaderTheme;
+}
 
-  // 加载 PDF 或纯文本
-  useEffect(() => {
-    let cancelled = false;
-    setStatus("loading");
-    setErrorMsg("");
+function loadPrefs(): PersistedPrefs {
+  if (typeof window === "undefined") return { fontSize: 18, theme: "light" };
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return { fontSize: 18, theme: "light" };
+    const p = JSON.parse(raw) as Partial<PersistedPrefs>;
+    const fontSize = (p.fontSize ?? 18) as FontSize;
+    const theme = (p.theme ?? "light") as ReaderTheme;
+    return { fontSize, theme };
+  } catch {
+    return { fontSize: 18, theme: "light" };
+  }
+}
 
-    if (format === "pdf") {
-      // 动态导入 pdfjs-dist 避免 SSR 报错
-      (async () => {
-        try {
-          const pdfjs = await import("pdfjs-dist");
-          // 设定 worker（CDN 路径）
-          (pdfjs as unknown as { GlobalWorkerOptions: { workerSrc: string } }).GlobalWorkerOptions.workerSrc =
-            `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+function savePrefs(p: PersistedPrefs) {
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(p));
+  } catch {
+    // ignore
+  }
+}
 
-          const loadingTask = pdfjs.getDocument({ url: fileUrl });
-          const pdf = await loadingTask.promise;
-          if (cancelled) return;
-          setNumPages(pdf.numPages);
-          await renderPage(pdf, 1);
-          if (!cancelled) setStatus("ready");
-        } catch (err) {
-          if (cancelled) return;
-          setErrorMsg(err instanceof Error ? err.message : "PDF 加载失败");
-          setStatus("error");
-        }
-      })();
-    } else if (format === "txt" || format === "markdown") {
-      fetch(fileUrl)
-        .then((r) => r.text())
-        .then((t) => { if (!cancelled) { setTextContent(t); setStatus("ready"); } })
-        .catch((err) => { if (!cancelled) { setErrorMsg(String(err)); setStatus("error"); } });
-    } else {
-      setErrorMsg(`暂不支持在线阅读 ${format.toUpperCase()} 格式，请下载后用本地阅读器打开。`);
-      setStatus("error");
+export default function BookReader({ content, bookId, title, author }: Props) {
+  // 1. 解析章节
+  const chapters: Chapter[] = useMemo(() => extractChapters(content), [content]);
+
+  // 2. 注入 heading id 后渲染 HTML
+  const html = useMemo(() => {
+    try {
+      const injected = injectHeadingIds(content, chapters);
+      return marked.parse(injected, { breaks: true, gfm: true, async: false }) as string;
+    } catch {
+      return `<pre>${content}</pre>`;
     }
+  }, [content, chapters]);
 
-    return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [format, fileUrl]);
+  // 3. 偏好（字号 + 主题）持久化
+  const [fontSize, setFontSize] = useState<FontSize>(18);
+  const [theme, setTheme] = useState<ReaderTheme>("light");
+  const [hydrated, setHydrated] = useState(false);
 
-  // 翻页
-  const renderPage = async (pdf: import("pdfjs-dist").PDFDocumentProxy, pageNumber: number) => {
-    const pageObj = await pdf.getPage(pageNumber);
-    const viewport = pageObj.getViewport({ scale: 1.4 });
-    const container = containerRef.current;
-    if (!container) return;
-    container.innerHTML = "";
-    const canvas = document.createElement("canvas");
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-    canvas.className = "pdf-page-canvas";
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    container.appendChild(canvas);
-    await pageObj.render({ canvasContext: ctx, viewport, canvas }).promise;
-  };
+  useEffect(() => {
+    const p = loadPrefs();
+    setFontSize(p.fontSize);
+    setTheme(p.theme);
+    setHydrated(true);
+  }, []);
 
-  const goPrev = async () => {
-    if (page <= 1) return;
-    const next = page - 1;
-    setPage(next);
-    const pdfjs = await import("pdfjs-dist");
-    const pdf = await pdfjs.getDocument({ url: fileUrl }).promise;
-    renderPage(pdf, next);
-  };
-  const goNext = async () => {
-    if (page >= numPages) return;
-    const next = page + 1;
-    setPage(next);
-    const pdfjs = await import("pdfjs-dist");
-    const pdf = await pdfjs.getDocument({ url: fileUrl }).promise;
-    renderPage(pdf, next);
-  };
+  useEffect(() => {
+    if (hydrated) savePrefs({ fontSize, theme });
+  }, [fontSize, theme, hydrated]);
+
+  // 4. 滚动进度
+  const [progress, setProgress] = useState(0);
+  useEffect(() => {
+    let raf = 0;
+    const update = () => {
+      const doc = document.documentElement;
+      const scrollTop = window.scrollY || doc.scrollTop;
+      const max = doc.scrollHeight - window.innerHeight;
+      const pct = max > 0 ? Math.min(100, Math.max(0, (scrollTop / max) * 100)) : 0;
+      setProgress(pct);
+    };
+    const onScroll = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        update();
+      });
+    };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  // 5. 当前激活章节（IntersectionObserver）
+  const [activeId, setActiveId] = useState<string | null>(chapters[0]?.id ?? null);
+  useEffect(() => {
+    if (chapters.length === 0) return;
+    const targets = chapters
+      .map((c) => document.getElementById(c.id))
+      .filter((el): el is HTMLElement => !!el);
+    if (targets.length === 0) return;
+
+    const visible = new Map<string, number>();
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          visible.set(entry.target.id, entry.intersectionRatio);
+        });
+        let bestId: string | null = null;
+        let bestRatio = 0;
+        visible.forEach((ratio, id) => {
+          if (ratio > bestRatio) {
+            bestRatio = ratio;
+            bestId = id;
+          }
+        });
+        if (bestId) setActiveId(bestId);
+      },
+      { rootMargin: "-20% 0px -60% 0px", threshold: [0, 0.25, 0.5, 0.75, 1] },
+    );
+    targets.forEach((t) => io.observe(t));
+    return () => io.disconnect();
+  }, [chapters]);
+
+  // 6. 跳转章节
+  const scrollToId = useCallback((id: string) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const y = el.getBoundingClientRect().top + window.scrollY - 96; // 顶 toolbar 偏移
+    window.scrollTo({ top: y, behavior: "smooth" });
+  }, []);
+
+  // 7. 回到顶部
+  const toTop = useCallback(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  // 8. 键盘快捷键
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      // 忽略在 input/textarea/contenteditable 中的按键
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) {
+        return;
+      }
+      if (e.key === "+" || e.key === "=") {
+        setFontSize((s) => Math.min(22, s + 2) as FontSize);
+        e.preventDefault();
+      } else if (e.key === "-" || e.key === "_") {
+        setFontSize((s) => Math.max(14, s - 2) as FontSize);
+        e.preventDefault();
+      } else if (e.key === "t" || e.key === "T") {
+        setTheme((th) => (th === "light" ? "sepia" : th === "sepia" ? "dark" : "light"));
+      } else if (e.key === "g") {
+        toTop();
+      } else if (e.key === "G") {
+        window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "smooth" });
+      } else if (e.key === "ArrowDown" || e.key === "j") {
+        window.scrollBy({ top: window.innerHeight * 0.85, behavior: "smooth" });
+      } else if (e.key === "ArrowUp" || e.key === "k") {
+        window.scrollBy({ top: -window.innerHeight * 0.85, behavior: "smooth" });
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [toTop]);
+
+  // 9. 显示回到顶部（> 25% 滚动后）
+  const showTop = progress > 8;
+
+  const rootStyle = {
+    ["--reader-font-size" as string]: `${fontSize}px`,
+  } as React.CSSProperties;
 
   return (
-    <div className="book-reader">
-      {format === "pdf" && status === "ready" && (
-        <>
-          <div className="book-reader-toolbar">
-            <button type="button" className="btn btn-sm" onClick={goPrev} disabled={page <= 1}>上一页</button>
-            <span className="page-indicator">第 {page} / {numPages} 页</span>
-            <button type="button" className="btn btn-sm" onClick={goNext} disabled={page >= numPages}>下一页</button>
-          </div>
-          <div ref={containerRef} className="book-reader-canvas-wrap" />
-        </>
-      )}
-      {(format === "txt" || format === "markdown") && status === "ready" && (
-        <article className="book-reader-text">
-          {format === "markdown" ? (
-            <pre className="markdown-body">{textContent}</pre>
-          ) : (
-            textContent.split("\n").map((line, i) => <p key={i}>{line || "\u00a0"}</p>)
-          )}
-        </article>
-      )}
-      {status === "loading" && <div className="book-reader-status">加载中…</div>}
-      {status === "error" && (
-        <div className="book-reader-status error">
-          <p>{errorMsg}</p>
-          <a href={fileUrl} download className="btn btn-primary">下载原文件</a>
-        </div>
+    <div className={`reader reader-theme-${theme}`} style={rootStyle}>
+      <ReaderProgress />
+      <ReaderToolbar
+        bookId={bookId}
+        title={title}
+        author={author}
+        fontSize={fontSize}
+        onFontSize={setFontSize}
+        theme={theme}
+        onTheme={setTheme}
+        progress={progress}
+      />
+
+      <BookToc chapters={chapters} activeId={activeId} onJump={scrollToId} />
+
+      <main className="reader-canvas">
+        <article
+          className="reader-text markdown-body"
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
+        <footer className="reader-end">
+          <span className="reader-end-mark">■</span>
+          <span className="reader-end-text">END OF TEXT</span>
+        </footer>
+      </main>
+
+      {showTop && (
+        <button
+          onClick={toTop}
+          className="reader-top"
+          type="button"
+          aria-label="回到顶部"
+        >
+          ↑
+        </button>
       )}
     </div>
   );
