@@ -14,7 +14,7 @@ interface Props {
 export default function BookUploaderCard({ profile, uploadedAt, booksCount, isAnonymous }: Props) {
   return (
     <div className="bd-actions-card bd-uploader">
-      <div className="bd-actions-card-head">UPLOADED BY</div>
+      <div className="bd-actions-card-head">上传者</div>
       <div className="bd-uploader-body">
         {profile?.avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -25,7 +25,7 @@ export default function BookUploaderCard({ profile, uploadedAt, booksCount, isAn
           </div>
         )}
         <div className="bd-uploader-info">
-          <div className="bd-uploader-name">{profile?.displayName ?? (isAnonymous ? "Anonymous" : "Unknown")}</div>
+          <div className="bd-uploader-name">{profile?.displayName ?? (isAnonymous ? "匿名" : "未知")}</div>
           {profile?.bio ? (
             <p className="bd-uploader-bio">{profile.bio}</p>
           ) : (
@@ -35,11 +35,11 @@ export default function BookUploaderCard({ profile, uploadedAt, booksCount, isAn
       </div>
       <dl className="bd-uploader-stats">
         <div className="bd-uploader-stat">
-          <dt>UPLOADED</dt>
+          <dt>上传日期</dt>
           <dd>{new Date(uploadedAt).toISOString().slice(0, 10)}</dd>
         </div>
         <div className="bd-uploader-stat">
-          <dt>BOOKS</dt>
+          <dt>藏书</dt>
           <dd>{String(booksCount).padStart(2, "0")}</dd>
         </div>
       </dl>

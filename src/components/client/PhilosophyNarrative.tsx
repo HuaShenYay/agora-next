@@ -12,13 +12,13 @@ export default function PhilosophyNarrative() {
 
   const beats: Beat[] = [
     { id: "1", text: "未经审视的人生不值得一过", type: "title" },
-    { id: "2", text: "这是苏格拉底在临刑前说的一句话。", type: "text" },
-    { id: "3", text: "Artificial Intellengence...", type: "text" },
-    { id: "4", text: "一个充满希望的，科学的光辉时代。", type: "text" },
-    { id: "5", text: "此时的人文和艺术却仍在学阀等知识官僚体系下不断衰落。", type: "text" },
-    { id: "6", text: "我们缺少了一个类似Github一样的，平权的，体系的，知识开源的场所。", type: "text" },
-    { id: "7", text: "因此。", type: "text" },
-    { id: "8", text: "我们希望在这里，建造一个区别于学院派的，但是仍然严谨，认真，能让灵魂共振的社区。", type: "editorial" },
+    { id: "2", text: "苏格拉底说这句话的时候，没有人替他把希腊文翻译成晦涩的学术黑话。", type: "text" },
+    { id: "3", text: "但今天，大多数经典著作的中译本，读起来像是在惩罚读者。", type: "text" },
+    { id: "4", text: "冗长的从句、僵硬的术语、学阀式的注脚——翻译本应是桥梁，却成了围墙。", type: "quote" },
+    { id: "5", text: "如果每个人都能借助 AI，自己重译一本经典呢？", type: "highlight" },
+    { id: "6", text: "不是功利的，不是学术生产的，而是忠于原意的、可读的、活的译本。", type: "text" },
+    { id: "7", text: "然后，把它免费开源。任何人都能 Fork、修改、提交更好的翻译。", type: "text" },
+    { id: "8", text: "这就是集市 Agora——用 AI 重译经典，让强译本回归公共领域。", type: "editorial" },
   ];
 
   const updateActiveBeat = useCallback(() => {

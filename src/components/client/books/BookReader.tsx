@@ -6,11 +6,17 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { marked } from "marked";
+import { Marked } from "marked";
 import ReaderToolbar, { type FontSize, type ReaderTheme } from "./ReaderToolbar";
 import ReaderProgress from "./ReaderProgress";
 import BookToc from "./BookToc";
-import { extractChapters, injectHeadingIds, type Chapter } from "@/lib/utils/markdown";
+import {
+  extractChapters,
+  extractChaptersForToc,
+  headingId,
+  normalizeMarkdown,
+  type Chapter,
+} from "@/lib/utils/markdown";
 
 interface Props {
   content: string;
@@ -49,14 +55,35 @@ function savePrefs(p: PersistedPrefs) {
 }
 
 export default function BookReader({ content, bookId, title, author }: Props) {
-  // 1. 解析章节
-  const chapters: Chapter[] = useMemo(() => extractChapters(content), [content]);
+  // 0. 段落归并：修复 PDF 提取导致的"每行独立段落"，让正文连续
+  const normalized = useMemo(() => normalizeMarkdown(content), [content]);
 
-  // 2. 注入 heading id 后渲染 HTML
+  // 1. 解析章节（正文 DOM id 由此决定，保持稳定）
+  const chapters: Chapter[] = useMemo(() => extractChapters(normalized), [normalized]);
+
+  // 1b. TOC 展示用：清洗后的章节（合并断词、第N章+副标题、过滤噪声）
+  const tocChapters = useMemo(() => extractChaptersForToc(normalized), [normalized]);
+
+  // 2. 注册 heading renderer：按调用顺序（与 extractChapters 一致）挂真实 id
+  //    取代旧的 {#id} 文本注入——marked 不识别该语法，会泄露垃圾文字且拿不到 DOM id
   const html = useMemo(() => {
     try {
-      const injected = injectHeadingIds(content, chapters);
-      return marked.parse(injected, { breaks: true, gfm: true, async: false }) as string;
+      let idx = 0;
+      const instance = new Marked();
+      instance.use({
+        renderer: {
+          heading({ text, depth, tokens }: { text: string; depth: number; tokens: unknown[] }) {
+            const ch = chapters[idx++];
+            const id = ch ? ch.id : headingId(text, idx - 1);
+            // 用 parseInline 渲染行内 token，保留标题里的加粗/斜体/代码
+            // marked 的 renderer this 指向持有 parser 的上下文
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const inner = (this as any).parser?.parseInline(tokens) ?? text;
+            return `<h${depth} id="${id}">${inner}</h${depth}>\n`;
+          },
+        },
+      });
+      return instance.parse(normalized, { breaks: false, gfm: true, async: false }) as string;
     } catch {
       return `<pre>${content}</pre>`;
     }
@@ -106,8 +133,20 @@ export default function BookReader({ content, bookId, title, author }: Props) {
     };
   }, []);
 
-  // 5. 当前激活章节（IntersectionObserver）
+  // 5. 当前激活章节（IntersectionObserver）——activeId 是原始标题 id
   const [activeId, setActiveId] = useState<string | null>(chapters[0]?.id ?? null);
+
+  // 5b. 原始标题 id → TOC 项 id 的映射（TOC 合并了断词/第N章+副标题，
+  //     active 落在合并组任一子标题时，TOC 都应高亮该组）
+  const rawIdToTocId = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const t of tocChapters) {
+      for (const rid of t.rawIds) m.set(rid, t.id);
+    }
+    return m;
+  }, [tocChapters]);
+  const activeTocId = activeId ? (rawIdToTocId.get(activeId) ?? null) : null;
+
   useEffect(() => {
     if (chapters.length === 0) return;
     const targets = chapters
@@ -201,7 +240,7 @@ export default function BookReader({ content, bookId, title, author }: Props) {
         progress={progress}
       />
 
-      <BookToc chapters={chapters} activeId={activeId} onJump={scrollToId} />
+      <BookToc chapters={tocChapters} activeId={activeTocId} onJump={scrollToId} />
 
       <main className="reader-canvas">
         <article

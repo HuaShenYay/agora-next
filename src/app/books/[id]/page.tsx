@@ -68,7 +68,7 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
       {/* Hero */}
       <header className="bd-hero">
         <div className="bd-hero-top">
-          <span className="bd-eyebrow">RECORD / 藏书</span>
+          <span className="bd-eyebrow">藏书</span>
           <span className="bd-eyebrow bd-eyebrow--right">
             {primaryCategory ? `${primaryCategory.emoji} ${primaryCategory.name}` : "—"}
           </span>
@@ -106,7 +106,7 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
           {/* 子标签（AI 完成后展示） */}
           {aiDone && displayTags.length > 0 && (
             <div className="bd-subtags">
-              <div className="bd-subtags-head">HIERARCHICAL TAGS</div>
+              <div className="bd-subtags-head">子分类标签</div>
               <div className="bd-subtags-list">
                 {displayTags.map((t) => (
                   <span key={t} className="bd-subtag">{t}</span>
@@ -117,7 +117,7 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
 
           {/* 章节预览 */}
           <div className="bd-section-head">
-            <h2 className="bd-section-title">CONTENTS</h2>
+            <h2 className="bd-section-title">目录</h2>
             <span className="bd-section-count">
               {chapters.length > 0 ? `${chapters.length} 章` : "—"}
             </span>
@@ -134,7 +134,7 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
             </ol>
           ) : (
             <div className="bd-empty">
-              <p className="bd-empty-title">NO PREVIEW</p>
+              <p className="bd-empty-title">暂无预览</p>
               <p className="bd-empty-desc">
                 {canRead ? "未能从正文中识别到章节标题。" : "该书籍尚未提取文字内容。"}
               </p>

@@ -20,28 +20,28 @@ export default function Home() {
       <PhilosophyNarrative />
       <section className="features-showcase" id="features">
         <AnimatedSection animation="blur-in" className="showcase-header" spring>
-          <h2 className="showcase-title">核心场域</h2>
-          <p className="showcase-subtitle">从沉思到对话，从孤岛到群落</p>
+          <h2 className="showcase-title">开源计划</h2>
+          <p className="showcase-subtitle">用 AI 重译经典，让强译本取代晦涩旧译，然后免费开源</p>
         </AnimatedSection>
         <AnimatedSection animation="fade-up" className="feature-illustrated" spring>
-          <div className="feature-illu-image img-hover-zoom"><img src="/images/abstract_scholar_community_1770135636103.png" alt="学苑社区" /></div>
-          <div className="feature-illu-content"><span className="status-badge">自然生长</span><h3>学苑社区</h3><p>去中心化的，自由的，发表个人学术见解和对经典文本的解读。0算法干扰，在这里，每个人都是思想的贡献者且没有等级制度区分。</p><div className="feature-tags"><span className="feature-tag">文本笔记</span><span className="feature-tag">论坛互动</span></div></div>
+          <div className="feature-illu-image img-hover-zoom"><img src="/images/abstract_scholar_community_1770135636103.png" alt="上传原典" /></div>
+          <div className="feature-illu-content"><span className="status-badge">第一步</span><h3>上传原典</h3><p>上传 PDF、EPUB、TXT 格式的经典原著或现有译本。系统内置 AI 文字提取引擎，自动将文档转化为可编辑的 Markdown 文本，作为重译的起点。</p><div className="feature-tags"><span className="feature-tag">PDF提取</span><span className="feature-tag">EPUB解析</span><span className="feature-tag">自动排版</span></div></div>
         </AnimatedSection>
         <AnimatedSection animation="flip" delay={2} className="feature-illustrated" spring>
-          <div className="feature-illu-image img-hover-zoom"><img src="/images/immersive_reading_1770135231682.png" alt="沉浸阅读" /></div>
-          <div className="feature-illu-content"><span className="status-badge">绝对聚焦</span><h3>沉浸阅读</h3><p>极简的界面、排版布局经过神经科学优化，ADHD友好，为您提供长篇文本的马拉松式阅读体验。让阅读再次成为一种庄重的入定仪式。</p><div className="feature-tags"><span className="feature-tag">卷轴模式</span><span className="feature-tag">无干扰设计</span><span className="feature-tag">专注美学</span></div></div>
+          <div className="feature-illu-image img-hover-zoom"><img src="/images/immersive_reading_1770135231682.png" alt="AI 重译" /></div>
+          <div className="feature-illu-content"><span className="status-badge">第二步</span><h3>AI 重译</h3><p>借助 AI 对原文进行重新翻译和润色，超越晦涩难懂的学术旧译。不是机器的粗糙直译，而是忠于原意、可读、流畅的强译本。每一次重译都是对经典的一次新理解。</p><div className="feature-tags"><span className="feature-tag">AI 翻译</span><span className="feature-tag">超越旧译</span><span className="feature-tag">可读性强</span></div></div>
         </AnimatedSection>
         <AnimatedSection animation="elastic" delay={1} className="feature-illustrated reverse" spring>
-          <div className="feature-illu-content"><span className="status-badge">核心功能</span><h3>思想花园</h3><p>在这里，您阅读的文本中的互动，ai会自然而然帮您建立语义双链＋双向图谱。因此，您可以轻松的在社区发表文章时引用原文自然段，同时您的文章在被引用时，也会呈现谱系。思想花园能让您的想法如植物般自然连接与生长。</p><div className="feature-tags"><span className="feature-tag">原子笔记</span><span className="feature-tag">语义联想</span><span className="feature-tag">图谱可视化</span></div></div>
-          <div className="feature-illu-image img-hover-zoom"><img src="/images/abstract_thought_garden_1770135653032.png" alt="思想花园" /></div>
+          <div className="feature-illu-content"><span className="status-badge">愿景</span><h3>免费开源</h3><p>每一个强译本都将免费开源。任何人都可以 Fork 一本译本，提出翻译修改意见，提交 PR。就像 GitHub 上的代码协作一样——人人参与，人人改进，译本在社区的打磨中越来越好。</p><div className="feature-tags"><span className="feature-tag">Fork & PR</span><span className="feature-tag">社区协作</span><span className="feature-tag">知识平权</span></div></div>
+          <div className="feature-illu-image img-hover-zoom"><img src="/images/abstract_thought_garden_1770135653032.png" alt="免费开源" /></div>
         </AnimatedSection>
       </section>
       <ScholarTestimonials />
       <AnimatedSection animation="fade-up" delay={1}>
         <section className="platform-cta" id="platform">
-          <h2 className="platform-cta-title">学术经典翻译协作平台</h2>
-          <p className="platform-cta-desc">开源、协作、AI 驱动。上传书籍，自动归类，社区协作翻译。</p>
-          <div className="platform-cta-actions"><Link href="/books" className="cta-button"><span className="cta-text">进入书库</span></Link><Link href="/books/upload" className="cta-button outline"><span className="cta-text">上传书籍</span></Link></div>
+          <h2 className="platform-cta-title">加入开源重译计划</h2>
+          <p className="platform-cta-desc">上传一本经典，用 AI 重译它，然后把强译本免费开源。</p>
+          <div className="platform-cta-actions"><Link href="/books" className="cta-button"><span className="cta-text">进入书库</span></Link></div>
         </section>
       </AnimatedSection>
       <AnimatedSection animation="fade-up" delay={1}>

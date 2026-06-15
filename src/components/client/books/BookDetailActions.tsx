@@ -53,39 +53,41 @@ export default function BookDetailActions({ book, canRead }: Props) {
         {canRead ? (
           <Link
             href={`/books/${book.id}/read`}
-            className="btn-pixel btn-pixel--primary btn-pixel--lg bd-read-cta"
+            className="bd-btn bd-btn--primary"
           >
-            <span className="bd-read-mark" aria-hidden>▶</span>
+            <span className="bd-btn-icon" aria-hidden>▶</span>
             开始阅读
           </Link>
         ) : (
-          <button className="btn-pixel btn-pixel--lg" disabled aria-disabled>
+          <div className="bd-btn bd-btn--disabled">
+            <span className="bd-btn-icon" aria-hidden>✕</span>
             内容未提取
-          </button>
+          </div>
         )}
-        <Link href="/books" className="btn-pixel btn-pixel--outline">
-          ← 返回书库
+        <Link href="/books" className="bd-btn bd-btn--outline">
+          <span className="bd-btn-icon" aria-hidden>←</span>
+          返回书库
         </Link>
       </div>
 
       {/* —— 元数据表 —— */}
       <div className="bd-actions-card">
-        <div className="bd-actions-card-head">METADATA</div>
+        <div className="bd-actions-card-head">元数据</div>
         <dl className="bd-actions-list">
           <div className="bd-actions-row">
-            <dt>AUTHOR</dt>
+            <dt>作者</dt>
             <dd>{book.author}</dd>
           </div>
           <div className="bd-actions-row">
-            <dt>LANGUAGE</dt>
+            <dt>语言</dt>
             <dd>{languageName}</dd>
           </div>
           <div className="bd-actions-row">
-            <dt>UPLOADED</dt>
+            <dt>上传日期</dt>
             <dd>{new Date(book.createdAt).toISOString().slice(0, 10)}</dd>
           </div>
           <div className="bd-actions-row">
-            <dt>UPDATED</dt>
+            <dt>更新日期</dt>
             <dd>{new Date(book.updatedAt).toISOString().slice(0, 10)}</dd>
           </div>
         </dl>
@@ -94,7 +96,7 @@ export default function BookDetailActions({ book, canRead }: Props) {
       {/* —— 分类与标签 —— */}
       {categoryNames.length > 0 && (
         <div className="bd-actions-card">
-          <div className="bd-actions-card-head">CATEGORIES</div>
+          <div className="bd-actions-card-head">分类</div>
           <div className="bd-actions-tags">
             {categoryNames.map((name, i) => {
               const emoji = topCategoryEmoji(book.categories[i] ?? "");
@@ -111,7 +113,7 @@ export default function BookDetailActions({ book, canRead }: Props) {
 
       {book.tags.length > 0 && (
         <div className="bd-actions-card">
-          <div className="bd-actions-card-head">TAGS</div>
+          <div className="bd-actions-card-head">标签</div>
           <div className="bd-actions-tags">
             {book.tags.map((t) => (
               <span key={t} className="bd-tag bd-tag--hash">#{t}</span>
@@ -123,7 +125,7 @@ export default function BookDetailActions({ book, canRead }: Props) {
       {/* —— 分享 —— */}
       <button onClick={copyLink} className="bd-copy-link" type="button">
         <span aria-hidden>⎘</span>
-        {copied ? "LINK COPIED ✓" : "COPY LINK"}
+        {copied ? "已复制 ✓" : "复制链接"}
       </button>
     </aside>
   );

@@ -19,18 +19,18 @@ const FORMAT_LABEL: Record<string, string> = {
 };
 
 const STATUS_LABEL: Record<string, string> = {
-  active: "ACTIVE",
-  archived: "ARCHIVED",
+  active: "在架",
+  archived: "已归档",
 };
 
 export default function BookMetaGrid({ book, index, wordCount }: Props) {
   const cells: { key: string; label: string; value: string }[] = [
-    { key: "no", label: "NO.", value: String(index).padStart(3, "0") },
-    { key: "lang", label: "LANG", value: book.language.toUpperCase() },
-    { key: "fmt", label: "FORMAT", value: FORMAT_LABEL[book.format] ?? book.format.toUpperCase() },
-    { key: "words", label: "WORDS", value: wordCount.toLocaleString() },
-    { key: "status", label: "STATUS", value: STATUS_LABEL[book.status] ?? "ACTIVE" },
-    { key: "clf", label: "CLASS", value: book.classificationStatus.toUpperCase() },
+    { key: "no", label: "编号", value: String(index).padStart(3, "0") },
+    { key: "lang", label: "语言", value: book.language.toUpperCase() },
+    { key: "fmt", label: "格式", value: FORMAT_LABEL[book.format] ?? book.format.toUpperCase() },
+    { key: "words", label: "字数", value: wordCount.toLocaleString() },
+    { key: "status", label: "状态", value: STATUS_LABEL[book.status] ?? "在架" },
+    { key: "clf", label: "分类", value: book.classificationStatus.toUpperCase() },
   ];
 
   return (

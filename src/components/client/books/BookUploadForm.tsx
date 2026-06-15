@@ -37,22 +37,23 @@ export default function BookUploadForm() {
     setResult(null);
 
     try {
+      const uploadPwd = typeof window !== "undefined" ? sessionStorage.getItem("upload_password") ?? "" : "";
       let res: Response;
       if (cacheKey) {
         res = await fetch(`/api/upload/${encodeURIComponent(file.name)}/resume`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", "x-upload-password": uploadPwd },
           body: JSON.stringify({ cacheKey, mode }),
         });
       } else {
         const fd = new FormData();
         fd.append("file", file);
         fd.append("title", title);
-        fd.append("author", title); // 兜底字段：DB 非空，AI 会纠正
+        fd.append("author", title); // 兆底字段：DB 非空，AI 会纠正
         fd.append("language", language);
         fd.append("description", description);
         fd.append("preferred", mode);
-        res = await fetch("/api/upload", { method: "POST", body: fd });
+        res = await fetch("/api/upload", { method: "POST", headers: { "x-upload-password": uploadPwd }, body: fd });
       }
 
       const data = await res.json();

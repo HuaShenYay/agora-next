@@ -41,7 +41,7 @@ export default function BookToc({ chapters, activeId, onJump }: Props) {
           <ol className="reader-toc-list">
             {chapters.map((ch, i) => (
               <li
-                key={ch.id}
+                key={`${ch.id}-${i}`}
                 className={`reader-toc-item reader-toc-item--lv${ch.level} ${
                   activeId === ch.id ? "is-active" : ""
                 }`}

@@ -19,7 +19,7 @@ export default async function ReadPage({ params }: { params: Promise<{ id: strin
         <div className="page-error">
           <h2>暂无内容</h2>
           <p>该书籍尚未提取文字内容。</p>
-          <Link href={`/books/${id}`} className="btn-pixel btn-pixel--outline">
+          <Link href={`/books/${id}`} className="bd-btn bd-btn--outline" style={{ maxWidth: "16rem", margin: "1.5rem auto 0" }}>
             返回书籍详情
           </Link>
         </div>

@@ -97,24 +97,15 @@ async function extractPdf(fileData: Uint8Array): Promise<string> {
     throw new Error("PDF 文字提取为空，可能是扫描件（纯图片 PDF），本地无法 OCR。");
   }
 
-  const lines = text.split("\n");
-  const cleaned: string[] = [];
-  let prevEmpty = false;
+  // PDF 提取的每个物理行末尾带换行，但语义上"连续的行"往往属于同一段。
+  // 策略：以空行为段落分隔，段落内的连续行用空格合并（与 extractTxt 一致），
+  // 避免每行被 marked 渲染成独立的 <p>/<br>，导致正文破碎。
+  const paragraphs = text
+    .split(/\n\s*\n/)
+    .map((p) => p.replace(/\s+/g, " ").trim())
+    .filter((p) => p.length > 0);
 
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (trimmed === "") {
-      if (!prevEmpty) {
-        cleaned.push("");
-        prevEmpty = true;
-      }
-    } else {
-      cleaned.push(trimmed);
-      prevEmpty = false;
-    }
-  }
-
-  return cleaned.join("\n").trim();
+  return paragraphs.join("\n\n").trim();
 }
 
 // ====================

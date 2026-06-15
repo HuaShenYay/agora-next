@@ -80,7 +80,6 @@ export default function NavBar() {
         </Link>
         <div className="nav-links">
           <Link href="/books" className="nav-link">书库</Link>
-          <Link href="/books/upload" className="nav-link">上传</Link>
         </div>
         <div className="nav-user">
           {user ? (

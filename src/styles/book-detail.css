@@ -238,16 +238,67 @@
   padding: 1rem;
   box-shadow: var(--bd-shadow-sm);
 }
-.bd-read-cta {
-  width: 100%;
-  height: 2.75rem;
-  font-size: 0.95rem;
-  display: inline-flex;
+
+/* —— 独立按钮系统 —— */
+.bd-btn {
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
+  width: 100%;
+  height: 3rem;
+  font-family: var(--font-pixel);
+  font-size: 0.95rem;
+  letter-spacing: 0.05em;
+  border: 2px solid var(--bd-fg);
+  border-radius: 0;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.1s steps(2), box-shadow 0.1s steps(2), background 0.15s;
+  box-shadow: 3px 3px 0 0 var(--bd-fg);
 }
-.bd-read-mark { font-size: 0.7rem; }
+.bd-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 0 var(--bd-fg);
+}
+.bd-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 0 var(--bd-fg);
+}
+
+/* Primary: 金色填充 */
+.bd-btn--primary {
+  background: var(--bd-accent);
+  color: var(--bd-fg);
+  font-weight: 700;
+}
+.bd-btn--primary:hover {
+  background: var(--bd-accent-dark);
+}
+
+/* Outline: 透明底 + 边框 */
+.bd-btn--outline {
+  background: transparent;
+  color: var(--bd-fg);
+}
+.bd-btn--outline:hover {
+  background: var(--bd-fg);
+  color: var(--bd-card);
+}
+
+/* Disabled: 灰调 */
+.bd-btn--disabled {
+  background: var(--bd-line);
+  color: var(--bd-fg-3);
+  cursor: not-allowed;
+  pointer-events: none;
+  box-shadow: 3px 3px 0 0 var(--bd-line-strong);
+}
+
+.bd-btn-icon {
+  font-size: 0.75rem;
+  line-height: 1;
+}
 
 .bd-actions-card {
   border: 2px solid var(--bd-fg);
