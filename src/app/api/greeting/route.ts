@@ -1,5 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 
+/** 转义 HTML 特殊字符，防止注入 */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export async function POST(req: NextRequest) {
   try {
     const data = await req.json();
@@ -10,6 +20,14 @@ export async function POST(req: NextRequest) {
         { error: "Name and Email are required" },
         { status: 400 }
       );
+    }
+
+    // 基础输入校验
+    if (typeof name !== "string" || name.length > 100) {
+      return NextResponse.json({ error: "姓名过长" }, { status: 400 });
+    }
+    if (typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json({ error: "邮箱格式无效" }, { status: 400 });
     }
 
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
@@ -28,6 +46,11 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // 转义用户输入，防止 HTML 注入
+    const safeName = escapeHtml(name);
+    const safeEmail = escapeHtml(email);
+    const safeMessage = message ? escapeHtml(message) : "（无）";
+
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -37,15 +60,15 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         from: "Agora Landing <onboarding@resend.dev>",
         to: NOTIFICATION_EMAIL,
-        subject: `✨ 新申请: ${name} 加入集市`,
+        subject: `✨ 新申请: ${safeName} 加入集市`,
         html: `
           <div style="font-family: sans-serif; padding: 20px; color: #333;">
             <h2 style="color: #a84c32;">新申请通知</h2>
             <p>有人对 <strong>集市 AGORA</strong> 感兴趣了！</p>
             <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
-            <p><strong>姓名:</strong> ${name}</p>
-            <p><strong>邮箱:</strong> ${email}</p>
-            <p><strong>留言:</strong> ${message || "（无）"}</p>
+            <p><strong>姓名:</strong> ${safeName}</p>
+            <p><strong>邮箱:</strong> ${safeEmail}</p>
+            <p><strong>留言:</strong> ${safeMessage}</p>
             <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
             <p style="font-size: 12px; color: #888;">这是一条来自 Agora Landing Page 的自动通知。</p>
           </div>

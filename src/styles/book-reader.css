@@ -410,8 +410,7 @@
 }
 .reader-text th { background: var(--reader-bg-2); }
 
-/* 用 marked gfm 注入的 {#id} 形式 id 选择器（marked 不会自动把 {#id} 去掉，
-   所以我们用 CSS 把行内锚点标记隐藏掉；同时也支持未来 marked 升级后的真实 id） */
+/* heading anchors (hidden — used for link targets) */
 .reader-text h1 .heading-anchor,
 .reader-text h2 .heading-anchor,
 .reader-text h3 .heading-anchor { display: none; }

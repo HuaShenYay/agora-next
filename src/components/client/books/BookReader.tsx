@@ -6,7 +6,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Marked } from "marked";
+import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeSlug from "rehype-slug";
 import ReaderToolbar, { type FontSize, type ReaderTheme } from "./ReaderToolbar";
 import ReaderProgress from "./ReaderProgress";
 import BookToc from "./BookToc";
@@ -64,30 +66,30 @@ export default function BookReader({ content, bookId, title, author }: Props) {
   // 1b. TOC 展示用：清洗后的章节（合并断词、第N章+副标题、过滤噪声）
   const tocChapters = useMemo(() => extractChaptersForToc(normalized), [normalized]);
 
-  // 2. 注册 heading renderer：按调用顺序（与 extractChapters 一致）挂真实 id
-  //    取代旧的 {#id} 文本注入——marked 不识别该语法，会泄露垃圾文字且拿不到 DOM id
-  const html = useMemo(() => {
-    try {
-      let idx = 0;
-      const instance = new Marked();
-      instance.use({
-        renderer: {
-          heading({ text, depth, tokens }: { text: string; depth: number; tokens: unknown[] }) {
-            const ch = chapters[idx++];
-            const id = ch ? ch.id : headingId(text, idx - 1);
-            // 用 parseInline 渲染行内 token，保留标题里的加粗/斜体/代码
-            // marked 的 renderer this 指向持有 parser 的上下文
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const inner = (this as any).parser?.parseInline(tokens) ?? text;
-            return `<h${depth} id="${id}">${inner}</h${depth}>\n`;
-          },
-        },
-      });
-      return instance.parse(normalized, { breaks: false, gfm: true, async: false }) as string;
-    } catch {
-      return `<pre>${content}</pre>`;
-    }
-  }, [content, chapters]);
+  // 2. react-markdown 渲染：自定义 heading 组件通过闭包捕获 chapters，
+  //    用 ref 计数器按 extractChapters 顺序挂上稳定 id，
+  //    确保 TOC 跳转 / IntersectionObserver 一致
+  const headingIdx = useRef(0);
+
+  const mdComponents = useMemo(() => {
+    // 重置计数器（chapters 变化说明 normalized 变了，需要重新渲染）
+    headingIdx.current = 0;
+    const makeHeading = (depth: 1 | 2 | 3) => {
+      const H = depth === 1 ? "h1" : depth === 2 ? "h2" : "h3";
+      return function Heading({ children, ...rest }: React.HTMLAttributes<HTMLHeadingElement>) {
+        const i = headingIdx.current;
+        const ch = chapters[i];
+        const id = ch ? ch.id : headingId(String(children), i);
+        headingIdx.current = i + 1;
+        return <H id={id} {...rest}>{children}</H>;
+      };
+    };
+    return {
+      h1: makeHeading(1),
+      h2: makeHeading(2),
+      h3: makeHeading(3),
+    };
+  }, [chapters]);
 
   // 3. 偏好（字号 + 主题）持久化
   const [fontSize, setFontSize] = useState<FontSize>(18);
@@ -228,7 +230,7 @@ export default function BookReader({ content, bookId, title, author }: Props) {
 
   return (
     <div className={`reader reader-theme-${theme}`} style={rootStyle}>
-      <ReaderProgress />
+      <ReaderProgress progress={progress} />
       <ReaderToolbar
         bookId={bookId}
         title={title}
@@ -243,10 +245,15 @@ export default function BookReader({ content, bookId, title, author }: Props) {
       <BookToc chapters={tocChapters} activeId={activeTocId} onJump={scrollToId} />
 
       <main className="reader-canvas">
-        <article
-          className="reader-text markdown-body"
-          dangerouslySetInnerHTML={{ __html: html }}
-        />
+        <article className="reader-text markdown-body">
+          <Markdown
+            remarkPlugins={[remarkGfm]}
+            rehypePlugins={[rehypeSlug]}
+            components={mdComponents}
+          >
+            {normalized}
+          </Markdown>
+        </article>
         <footer className="reader-end">
           <span className="reader-end-mark">■</span>
           <span className="reader-end-text">END OF TEXT</span>

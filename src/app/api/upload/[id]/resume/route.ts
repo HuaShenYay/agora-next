@@ -13,6 +13,16 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  // 鉴权：上传密码
+  const uploadPassword = process.env.UPLOAD_PASSWORD;
+  if (!uploadPassword) {
+    return NextResponse.json({ error: "上传功能已关闭" }, { status: 403 });
+  }
+  const authHeader = request.headers.get("x-upload-password");
+  if (authHeader !== uploadPassword) {
+    return NextResponse.json({ error: "未授权：请提供上传密码" }, { status: 401 });
+  }
+
   const { id: bookId } = await params;
   let body: { cacheKey?: string; mode?: string };
   try {

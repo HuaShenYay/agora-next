@@ -21,17 +21,41 @@ export interface AIMetadata {
 }
 
 // ====================
+// Supabase 行类型（books 表）
+// ====================
+
+interface BookRow {
+  id: string;
+  title: string | null;
+  title_original: string | null;
+  author: string | null;
+  description: string | null;
+  format: Book["format"] | null;
+  language: string | null;
+  categories: string[] | null;
+  tags: string[] | null;
+  status: Book["status"] | null;
+  uploader_id: string | null;
+  cover_url: string | null;
+  content_markdown: string | null;
+  ai_status: string | null;
+  ai_metadata: AIMetadata | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// ====================
 // 辅助：Supabase 行 → Book 类型
 // ====================
 
-function rowToBook(row: Record<string, unknown>): Book {
+function rowToBook(row: BookRow): Book {
   // AI 元数据优先覆盖原始字段
-  const ai = (row.ai_metadata as AIMetadata | null | undefined) ?? {};
-  const aiStatus = (row.ai_status as string) ?? "idle";
+  const ai = row.ai_metadata ?? {};
+  const aiStatus = row.ai_status ?? "idle";
 
   // title：AI 优化的标题作为展示标题，原始标题作为 titleOriginal
-  const rawTitle = (row.title as string) ?? "";
-  const rawTitleOriginal = (row.title_original as string) ?? rawTitle;
+  const rawTitle = row.title ?? "";
+  const rawTitleOriginal = row.title_original ?? rawTitle;
   const aiTitle = ai.title?.trim();
   const displayTitle = (aiStatus === "done" && aiTitle) ? aiTitle : rawTitle;
   const displayTitleOriginal = (aiStatus === "done" && aiTitle && aiTitle !== rawTitleOriginal)
@@ -45,27 +69,27 @@ function rowToBook(row: Record<string, unknown>): Book {
   const aiLanguage = ai.language?.trim();
 
   return {
-    id: row.id as string,
+    id: row.id,
     title: displayTitle,
     titleOriginal: displayTitleOriginal,
-    author: (aiStatus === "done" && aiAuthor) ? aiAuthor : (row.author as string) ?? "",
-    description: (aiStatus === "done" && aiDescription) ? aiDescription : (row.description as string) ?? "",
+    author: (aiStatus === "done" && aiAuthor) ? aiAuthor : row.author ?? "",
+    description: (aiStatus === "done" && aiDescription) ? aiDescription : row.description ?? "",
     shortDescription: (aiStatus === "done" && aiShortDesc) ? aiShortDesc : undefined,
-    format: (row.format as Book["format"]) ?? "txt",
-    language: (aiStatus === "done" && aiLanguage) ? aiLanguage : (row.language as string) ?? "en",
-    categories: (aiStatus === "done" && aiCategories) ? aiCategories : (row.categories as string[]) ?? [],
-    tags: (aiStatus === "done" && ai.subTags && ai.subTags.length > 0) ? ai.subTags : (row.tags as string[]) ?? [],
+    format: row.format ?? "txt",
+    language: (aiStatus === "done" && aiLanguage) ? aiLanguage : row.language ?? "en",
+    categories: (aiStatus === "done" && aiCategories) ? aiCategories : row.categories ?? [],
+    tags: (aiStatus === "done" && ai.subTags && ai.subTags.length > 0) ? ai.subTags : row.tags ?? [],
     chapterCount: 0,
-    uploaderId: (row.uploader_id as string) ?? "anonymous",
+    uploaderId: row.uploader_id ?? "anonymous",
     forkCount: 0,
     prCount: 0,
     mergedPrCount: 0,
-    status: (row.status as Book["status"]) ?? "active",
+    status: row.status ?? "active",
     classificationStatus: "pending",
-    coverUrl: row.cover_url as string | undefined,
-    contentMarkdown: (row.content_markdown as string) ?? undefined,
-    createdAt: (row.created_at as string) ?? new Date().toISOString(),
-    updatedAt: (row.updated_at as string) ?? new Date().toISOString(),
+    coverUrl: row.cover_url ?? undefined,
+    contentMarkdown: row.content_markdown ?? undefined,
+    createdAt: row.created_at ?? new Date().toISOString(),
+    updatedAt: row.updated_at ?? new Date().toISOString(),
   };
 }
 
@@ -81,7 +105,7 @@ export async function getBook(bookId: string): Promise<Book | null> {
     .eq("id", bookId)
     .single();
   if (error || !data) return null;
-  return rowToBook(data);
+  return rowToBook(data as unknown as BookRow);
 }
 
 export interface AIMetaRow {
@@ -190,7 +214,7 @@ export async function listBooks(filters?: {
   query = query.range(from, from + pageSize - 1);
   const { data, count, error } = await query;
   if (error || !data) return { books: [], total: 0 };
-  return { books: data.map(rowToBook), total: count ?? 0 };
+  return { books: data.map((d) => rowToBook(d as unknown as BookRow)), total: count ?? 0 };
 }
 
 export async function getBookCount(status?: string): Promise<number> {
@@ -209,5 +233,5 @@ export async function getAllBooks(): Promise<Book[]> {
     .eq("status", "active")
     .order("created_at", { ascending: false });
   if (error || !data) return [];
-  return data.map(rowToBook);
+  return data.map((d) => rowToBook(d as unknown as BookRow));
 }

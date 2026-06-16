@@ -1,6 +1,16 @@
 /* ====================
    集市 Agora - 古希腊雅典风格
    灵感来源：雅典卫城、大理石、蜂蜜金
+
+   TODO: 当前所有样式集中在单文件（4400+ 行），建议按模块拆分：
+   - base.css          → CSS 变量、reset、@font-face
+   - layout.css        → 页面布局、导航、footer
+   - hero.css          → 落地页 Hero、动画
+   - book-grid.css     → 书库列表、卡片
+   - book-detail.css   → 书籍详情（已拆分到 src/styles/）
+   - reader.css        → 阅读器（已拆分到 src/styles/）
+   - upload.css        → 上传页、密码门
+   拆分方案：使用 CSS Modules 或保留 @import 但拆成独立文件
    ==================== */
 
 /* ====================
