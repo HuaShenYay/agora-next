@@ -2,8 +2,14 @@
 // 登录页
 // ====================
 
+import { Metadata } from "next";
 import Link from "next/link";
 import { LoginForm } from "@/components/client/auth/LoginForm";
+
+export const metadata: Metadata = {
+  title: "登录",
+  description: "登录集市 Agora 账户",
+};
 
 export default function LoginPage() {
   return (

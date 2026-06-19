@@ -13,17 +13,15 @@ const FORMAT_BY_EXT: Record<string, BookFormat> = {
   markdown: "markdown",
 };
 
-const MIME_BY_FORMAT: Record<BookFormat, string> = {
-  pdf: "application/pdf",
-  epub: "application/epub+zip",
-  txt: "text/plain",
-  markdown: "text/markdown",
-};
+function getExtension(filename: string): string {
+  const idx = filename.lastIndexOf(".");
+  return idx >= 0 ? filename.slice(idx + 1).toLowerCase() : "";
+}
 
 export function detectFormat(mimeType: string, filename: string): BookFormat {
   // 1) 优先按 MIME 匹配
   if (mimeType && (SUPPORTED_FORMATS as Record<string, BookFormat>)[mimeType]) {
-    return (SUPPORTED_FORMATS as Record<string, BookFormat>)[mimeType];
+    return (SUPPORTED_FORMATS as Record<string, BookFormat>)[mimeType]!;
   }
   // 2) 否则按文件后缀
   const ext = getExtension(filename);
@@ -41,13 +39,4 @@ export function validateFile(fileData: Uint8Array, format: BookFormat): void {
   if (!format) {
     throw new Error("无法识别文件格式");
   }
-}
-
-export function getExtension(filename: string): string {
-  const idx = filename.lastIndexOf(".");
-  return idx >= 0 ? filename.slice(idx + 1).toLowerCase() : "";
-}
-
-export function getMimeType(format: BookFormat): string {
-  return MIME_BY_FORMAT[format] ?? "application/octet-stream";
 }

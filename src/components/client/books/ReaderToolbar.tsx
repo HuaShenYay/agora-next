@@ -63,7 +63,7 @@ export default function ReaderToolbar({
           <div className="reader-font" role="group" aria-label="字号">
             <button
               className="reader-icon-btn"
-              onClick={() => canSmaller && onFontSize(SIZES[idx - 1])}
+              onClick={() => canSmaller && onFontSize(SIZES[idx - 1]!)}
               disabled={!canSmaller}
               aria-label="缩小字号"
               type="button"
@@ -73,7 +73,7 @@ export default function ReaderToolbar({
             <span className="reader-font-value">{fontSize}px</span>
             <button
               className="reader-icon-btn"
-              onClick={() => canLarger && onFontSize(SIZES[idx + 1])}
+              onClick={() => canLarger && onFontSize(SIZES[idx + 1]!)}
               disabled={!canLarger}
               aria-label="放大字号"
               type="button"

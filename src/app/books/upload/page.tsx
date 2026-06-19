@@ -1,5 +1,11 @@
+import { Metadata } from "next";
 import BookUploadForm from "@/components/client/books/BookUploadForm";
 import UploadGate from "@/components/client/books/UploadGate";
+
+export const metadata: Metadata = {
+  title: "上传书籍",
+  description: "上传学术经典书籍到集市 Agora 书库",
+};
 
 export default function UploadPage() {
   return (

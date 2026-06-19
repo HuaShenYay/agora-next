@@ -23,7 +23,7 @@ export default function AnimatedSection({
     const element = ref.current;
     if (!element) return;
     const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
+      if (entry?.isIntersecting) {
         setTimeout(() => { setIsVisible(true); setHasAnimated(true); }, delay * 120);
         if (once) observer.unobserve(element);
       } else if (!once) setIsVisible(false);
@@ -115,7 +115,7 @@ export function TextReveal({ text, className = "", delay = 0, staggerDelay = 0.0
   useEffect(() => {
     const el = ref.current; if (!el) return;
     const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) { setTimeout(() => setIsVisible(true), delay * 1000); observer.unobserve(el); }
+      if (entry?.isIntersecting) { setTimeout(() => setIsVisible(true), delay * 1000); observer.unobserve(el); }
     }, { threshold: 0.3 });
     observer.observe(el); return () => observer.disconnect();
   }, [delay]);
@@ -138,7 +138,7 @@ export function ImageReveal({ src, alt, className = "" }: ImageRevealProps) {
   useEffect(() => {
     const el = ref.current; if (!el) return;
     const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) { setIsVisible(true); observer.unobserve(el); }
+      if (entry?.isIntersecting) { setIsVisible(true); observer.unobserve(el); }
     }, { threshold: 0.2 });
     observer.observe(el); return () => observer.disconnect();
   }, []);

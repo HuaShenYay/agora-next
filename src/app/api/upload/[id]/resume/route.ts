@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { resumeUpload } from "@/lib/services/file-upload";
+import { safeEqual } from "@/lib/utils/crypto-safe";
 
 export const maxDuration = 180;
 
@@ -19,7 +20,7 @@ export async function POST(
     return NextResponse.json({ error: "上传功能已关闭" }, { status: 403 });
   }
   const authHeader = request.headers.get("x-upload-password");
-  if (authHeader !== uploadPassword) {
+  if (!authHeader || !safeEqual(authHeader, uploadPassword)) {
     return NextResponse.json({ error: "未授权：请提供上传密码" }, { status: 401 });
   }
 

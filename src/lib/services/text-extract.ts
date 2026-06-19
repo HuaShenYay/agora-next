@@ -75,14 +75,6 @@ export async function extractLocal(
   }
 }
 
-// 向后兼容：原 extractToMarkdown 仍可工作（直接走本地）
-export async function extractToMarkdown(
-  fileData: Uint8Array,
-  format: BookFormat,
-): Promise<string> {
-  return extractLocal(fileData, format);
-}
-
 // ====================
 // PDF 提取 (unpdf)
 // ====================
@@ -153,7 +145,7 @@ async function extractEpub(fileData: Uint8Array): Promise<string> {
     if (!html) continue;
 
     const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-    const content = bodyMatch ? bodyMatch[1] : html;
+    const content = bodyMatch ? bodyMatch[1]! : html;
 
     const cleaned = content
       .replace(/<script[\s\S]*?<\/script>/gi, "")
@@ -174,7 +166,7 @@ async function extractEpub(fileData: Uint8Array): Promise<string> {
 
 function extractOpfPath(containerXml: string): string | null {
   const match = containerXml.match(/full-path=["']([^"']+)["']/i);
-  return match ? match[1] : null;
+  return match ? match[1]! : null;
 }
 
 function parseOpf(opfContent: string): {
@@ -187,7 +179,8 @@ function parseOpf(opfContent: string): {
   const itemRegex = /<item\s+[^>]*id=["']([^"']+)["'][^>]*href=["']([^"']+)["'][^>]*\/?>/gi;
   let match;
   while ((match = itemRegex.exec(opfContent)) !== null) {
-    const [, id, href] = match;
+    const id = match[1]!;
+    const href = match[2]!;
     if (/\.(x?html?|xml)$/i.test(href)) {
       manifest[id] = decodeURIComponent(href);
     }
@@ -195,7 +188,7 @@ function parseOpf(opfContent: string): {
 
   const spineRegex = /<itemref\s+[^>]*idref=["']([^"']+)["'][^>]*\/?>/gi;
   while ((match = spineRegex.exec(opfContent)) !== null) {
-    spine.push(match[1]);
+    spine.push(match[1]!);
   }
 
   return { spine, manifest };

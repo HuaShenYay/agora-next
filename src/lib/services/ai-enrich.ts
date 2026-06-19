@@ -5,7 +5,7 @@
 // ====================
 
 import { EventEmitter } from "node:events";
-import { getSupabase } from "@/lib/supabase/client";
+import { getAdminSupabase } from "@/lib/supabase/admin";
 import { chatCompletion, AIError } from "./ai";
 import { parseEnrichResult, SYSTEM_PROMPT, USER_PROMPT_TEMPLATE } from "./ai-prompts";
 import { getBook } from "@/lib/db/books";
@@ -74,13 +74,6 @@ export function getEnrichStatus(bookId: string): EnrichProgress | null {
   return jobs.get(bookId) ?? null;
 }
 
-export function subscribeEnrich(bookId: string, handler: (p: EnrichProgress) => void): () => void {
-  const channel = `enrich:${bookId}`;
-  const listener = (p: EnrichProgress) => handler(p);
-  bus.on(channel, listener);
-  return () => bus.off(channel, listener);
-}
-
 function emit(p: EnrichProgress) {
   jobs.set(p.bookId, p);
   bus.emit(`enrich:${p.bookId}`, p);
@@ -96,7 +89,7 @@ async function updateBookAiStatus(
     ai_updated_at?: string;
   },
 ): Promise<void> {
-  const supabase = getSupabase();
+  const supabase = getAdminSupabase();
   const { error } = await supabase
     .from("books")
     .update({ ...patch, ai_updated_at: patch.ai_updated_at ?? new Date().toISOString() })
@@ -143,7 +136,7 @@ async function runEnrichJob(bookId: string): Promise<void> {
 
   // ---- DB 防重：已成功识别过的书不再跑 ----
   update({ stage: "reading", message: "检查 AI 状态" });
-  const supabase = getSupabase();
+  const supabase = getAdminSupabase();
   const { data: row } = await supabase
     .from("books")
     .select("ai_status, ai_metadata")

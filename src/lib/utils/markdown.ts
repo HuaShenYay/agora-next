@@ -33,8 +33,8 @@ export function extractChapters(markdown: string): Chapter[] {
   let m: RegExpExecArray | null;
   let i = 0;
   while ((m = re.exec(markdown)) !== null) {
-    const level = m[1].length as 1 | 2 | 3;
-    const title = m[2].replace(/[*_`]+/g, "").trim();
+    const level = m[1]!.length as 1 | 2 | 3;
+    const title = m[2]!.replace(/[*_`]+/g, "").trim();
     if (!title) continue;
     out.push({ id: headingId(title, i), level, title });
     i++;
@@ -125,11 +125,11 @@ export function extractChaptersForToc(markdown: string): TocChapter[] {
   const merged: TocChapter[] = [];
   let i = 0;
   while (i < raw.length) {
-    const cur = raw[i];
+    const cur = raw[i]!;
     const title = cur.title;
-    // 规则 2：第N章/章卷节 模式 + 紧跟一个非模式短标题 → 合并为"第N章　副标题"
+    // 规则 2：第N章/章卷节 模式 + 紧跟一个非模式短标题 → 合并为"第N章 副标题"
     if (CHAPTER_PATTERN_RE.test(title) && i + 1 < raw.length) {
-      const next = raw[i + 1];
+      const next = raw[i + 1]!;
       const nextTitle = next.title;
       if (
         !CHAPTER_PATTERN_RE.test(nextTitle) &&
@@ -155,7 +155,7 @@ export function extractChaptersForToc(markdown: string): TocChapter[] {
       let j = i + 1;
       let lastLevel = cur.level;
       while (j < raw.length) {
-        const nj = raw[j];
+        const nj = raw[j]!;
         const njCjk = [...nj.title].filter((c) => /\p{Script=Han}|\p{Letter}/u.test(c)).length;
         if (njCjk === 1 && !MEANINGFUL_SHORT.test(nj.title) && nj.level === cur.level) {
           combine.push(nj.title);
@@ -187,10 +187,4 @@ export function extractChaptersForToc(markdown: string): TocChapter[] {
     i++;
   }
   return merged;
-}
-
-// 标记：已废弃的旧 API（保留导出以兼容旧 import，但不再使用）
-/** @deprecated 使用 BookReader 中的 marked heading renderer 方案 */
-export function injectHeadingIds(_markdown: string, _chapters: Chapter[]): string {
-  return _markdown;
 }

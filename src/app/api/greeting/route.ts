@@ -31,8 +31,21 @@ export async function POST(req: NextRequest) {
     }
 
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
-    const NOTIFICATION_EMAIL =
-      process.env.NOTIFICATION_EMAIL || "bigdickgod@icloud.com";
+    const NOTIFICATION_EMAIL = process.env.NOTIFICATION_EMAIL;
+    const MAIL_FROM =
+      process.env.MAIL_FROM || "Agora <onboarding@resend.dev>";
+
+    if (!NOTIFICATION_EMAIL) {
+      return NextResponse.json(
+        { error: "联系表单未配置收件邮箱" },
+        { status: 503 },
+      );
+    }
+    if (!process.env.MAIL_FROM) {
+      console.warn(
+        "MAIL_FROM 未设置，使用 Resend 测试地址 onboarding@resend.dev（仅能发送到验证过的测试邮箱）",
+      );
+    }
 
     if (!RESEND_API_KEY) {
       console.warn("RESEND_API_KEY is not set. Falling back to mock behavior.");
@@ -58,7 +71,7 @@ export async function POST(req: NextRequest) {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "Agora Landing <onboarding@resend.dev>",
+        from: MAIL_FROM,
         to: NOTIFICATION_EMAIL,
         subject: `✨ 新申请: ${safeName} 加入集市`,
         html: `

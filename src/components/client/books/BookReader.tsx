@@ -229,7 +229,7 @@ export default function BookReader({ content, bookId, title, author }: Props) {
   } as React.CSSProperties;
 
   return (
-    <div className={`reader reader-theme-${theme}`} style={rootStyle}>
+    <div className={`reader reader-theme-${theme}`} style={rootStyle} role="document" aria-label={`${title} — 阅读器`}>
       <ReaderProgress progress={progress} />
       <ReaderToolbar
         bookId={bookId}

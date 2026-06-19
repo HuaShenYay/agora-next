@@ -4,6 +4,9 @@ import ScholarTestimonials from "@/components/client/ScholarTestimonials";
 import AnimatedSection from "@/components/client/AnimatedSection";
 import PhilosophyNarrative from "@/components/client/PhilosophyNarrative";
 
+// 联系邮箱（来自环境变量；未配置则页脚不渲染邮箱区块）
+const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL;
+
 const PixelLightbulb = ({ className = "" }: { className?: string }) => (
   <svg className={className} width="36" height="36" viewBox="0 0 10 12" fill="currentColor">
     <rect x="3" y="0" width="4" height="1" /><rect x="2" y="1" width="6" height="1" />
@@ -48,7 +51,9 @@ export default function Home() {
         <footer className="footer">
           <div className="footer-content">
             <div className="footer-col"><h4 className="footer-label">[工作室]</h4><p>Monji 映画</p><p>中国</p></div>
-            <div className="footer-col"><h4 className="footer-label">[邮箱]</h4><a href="mailto:bigdickgod@icloud.com" className="footer-link link-animated">bigdickgod@icloud.com</a></div>
+            {CONTACT_EMAIL ? (
+              <div className="footer-col"><h4 className="footer-label">[邮箱]</h4><a href={`mailto:${CONTACT_EMAIL}`} className="footer-link link-animated">{CONTACT_EMAIL}</a></div>
+            ) : null}
             <div className="footer-col center"><PixelLightbulb className="footer-icon pulse-subtle" /><span className="footer-initiate">启程</span></div>
             <div className="footer-col"><h4 className="footer-label">[连接]</h4><a href="https://space.bilibili.com/3546814865213878" className="footer-link link-animated">哔哩哔哩</a><a href="https://www.douyin.com/user/MS4wLjABAAAA_-Bxp3KGZqXg1k6RsbWb3c5uwPDMHmomY-UXbtidf0cpmMix0l_GXzP_ezMkz6NE?from_tab_name=main" className="footer-link link-animated">抖音</a></div>
           </div>

@@ -2,8 +2,14 @@
 // 注册页
 // ====================
 
+import { Metadata } from "next";
 import Link from "next/link";
 import { SignupForm } from "@/components/client/auth/SignupForm";
+
+export const metadata: Metadata = {
+  title: "注册",
+  description: "创建集市 Agora 账户",
+};
 
 export default function SignupPage() {
   return (

@@ -7,6 +7,7 @@
 // ====================
 
 import { notFound } from "next/navigation";
+import { Metadata } from "next";
 import { getBook, getBookAi, type AIMetadata } from "@/lib/db/books";
 import { getBooksCountByUploader, getProfile } from "@/lib/db/profiles";
 import { DEFAULT_CATEGORIES, SUB_CATEGORY_MAP } from "@/lib/utils/constants";
@@ -14,6 +15,29 @@ import BookMetaGrid from "@/components/client/books/BookMetaGrid";
 import BookDetailActions from "@/components/client/books/BookDetailActions";
 import BookUploaderCard from "@/components/client/books/BookUploaderCard";
 import BookAiStatus from "@/components/client/books/BookAiStatus";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const book = await getBook(id);
+  if (!book) return { title: "书籍不存在" };
+  const desc = book.description
+    ? book.description.slice(0, 160)
+    : `${book.author} — 集市 Agora 书库`;
+  return {
+    title: book.title,
+    description: desc,
+    openGraph: {
+      title: `${book.title} | 集市 Agora`,
+      description: desc,
+      type: "article",
+      ...(book.coverUrl ? { images: [{ url: book.coverUrl }] } : {}),
+    },
+  };
+}
 
 export default async function BookDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -43,7 +67,7 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
   const chapters = canRead
     ? Array.from(book.contentMarkdown!.matchAll(/^#{1,3}\s+(.+)$/gm))
         .slice(0, 12)
-        .map((m, i) => ({ id: `ch-${i}`, level: m[0].split(/\s+/)[0].length, title: m[1].trim() }))
+        .map((m, i) => ({ id: `ch-${i}`, level: m[0]!.split(/\s+/)[0]!.length, title: m[1]!.trim() }))
     : [];
 
   // 分类显示：优先用子分类信息，回退到顶级分类

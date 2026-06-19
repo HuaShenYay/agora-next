@@ -25,8 +25,8 @@ export default function ScholarTestimonials() {
   const goPrev = () => setCurrentIndex((currentIndex - 1 + scholarsData.length) % scholarsData.length);
   const goNext = () => setCurrentIndex((currentIndex + 1) % scholarsData.length);
   const goTo = (index: number) => setCurrentIndex(index);
-  const current = scholarsData[currentIndex];
-  const CurrentAvatar = scholarAvatars[current.id];
+  const current = scholarsData[currentIndex]!;
+  const CurrentAvatar = scholarAvatars[current.id]!;
   return (
     <section className="scholar-testimonials">
       <div className="testimonials-header"><h2 className="testimonials-title">他们也在用</h2></div>

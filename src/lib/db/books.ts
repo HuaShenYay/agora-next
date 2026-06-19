@@ -3,7 +3,7 @@
 // ====================
 
 import { getSupabase } from "@/lib/supabase/client";
-import { storageList, storageDelete } from "@/lib/supabase/storage";
+import { getAdminSupabase } from "@/lib/supabase/admin";
 import type { Book, BookSummary } from "@/lib/utils/types";
 
 // ====================
@@ -135,7 +135,7 @@ export async function saveBook(
   book: Book,
   extras?: { storagePath?: string; sizeBytes?: number },
 ): Promise<void> {
-  const supabase = getSupabase();
+  const supabase = getAdminSupabase();
   const row: Record<string, unknown> = {
     id: book.id,
     title: book.title,
@@ -166,28 +166,26 @@ export async function saveBook(
   }
 }
 
-export async function getBookStoragePath(bookId: string): Promise<string | null> {
-  const supabase = getSupabase();
-  const { data, error } = await supabase
-    .from("books")
-    .select("storage_path")
-    .eq("id", bookId)
-    .single();
-  if (error || !data) return null;
-  return (data.storage_path as string | null) ?? null;
-}
-
-export async function deleteBook(bookId: string): Promise<void> {
-  const supabase = getSupabase();
-  try {
-    const files = await storageList(`${bookId}/`);
-    for (const file of files) {
-      await storageDelete(file);
-    }
-  } catch {
-    // ignore
-  }
-  await supabase.from("books").delete().eq("id", bookId);
+/**
+ * 把用户搜索词转成安全的 PostgREST `.or()` 过滤串。
+ * 防止 `,` / `(` / `)` 等 PostgREST 元字符注入额外过滤子句，
+ * 同时转义 ilike 模式里的 `%` / `_` 通配符。
+ */
+function buildSearchFilter(term: string): string {
+  const safe = term
+    // 转义 PostgREST 过滤语法元字符：先转反斜杠，再转逗号/圆括号
+    .replace(/\\/g, "\\\\")
+    .replace(/,/g, "\\,")
+    .replace(/\(/g, "\\(")
+    .replace(/\)/g, "\\)")
+    // 转义 ilike 模式通配符
+    .replace(/%/g, "\\%")
+    .replace(/_/g, "\\_");
+  return (
+    `title.ilike.%${safe}%,` +
+    `title_original.ilike.%${safe}%,` +
+    `author.ilike.%${safe}%`
+  );
 }
 
 export async function listBooks(filters?: {
@@ -203,9 +201,7 @@ export async function listBooks(filters?: {
   if (filters?.language) query = query.eq("language", filters.language);
   if (filters?.category) query = query.contains("categories", [filters.category]);
   if (filters?.search) {
-    query = query.or(
-      `title.ilike.%${filters.search}%,title_original.ilike.%${filters.search}%,author.ilike.%${filters.search}%`,
-    );
+    query = query.or(buildSearchFilter(filters.search));
   }
   query = query.order("created_at", { ascending: false });
   const page = filters?.page ?? 1;
@@ -215,23 +211,4 @@ export async function listBooks(filters?: {
   const { data, count, error } = await query;
   if (error || !data) return { books: [], total: 0 };
   return { books: data.map((d) => rowToBook(d as unknown as BookRow)), total: count ?? 0 };
-}
-
-export async function getBookCount(status?: string): Promise<number> {
-  const supabase = getSupabase();
-  let query = supabase.from("books").select("*", { count: "exact", head: true });
-  if (status) query = query.eq("status", status);
-  const { count } = await query;
-  return count ?? 0;
-}
-
-export async function getAllBooks(): Promise<Book[]> {
-  const supabase = getSupabase();
-  const { data, error } = await supabase
-    .from("books")
-    .select("*")
-    .eq("status", "active")
-    .order("created_at", { ascending: false });
-  if (error || !data) return [];
-  return data.map((d) => rowToBook(d as unknown as BookRow));
 }

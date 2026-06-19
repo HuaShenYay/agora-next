@@ -136,7 +136,7 @@ export default function BookGrid({ initialCategory, initialSearch }: Props) {
   const progressPct = Math.round((page / totalPages) * 100);
 
   return (
-    <section className="lib">
+    <section className="lib" id="main-content" aria-label="书库">
       {/* ====== Hero：藏书殿 ====== */}
       <header className="lib-header">
         <div className="lib-header-bg" aria-hidden />
@@ -168,13 +168,14 @@ export default function BookGrid({ initialCategory, initialSearch }: Props) {
         <form className="lib-search" onSubmit={handleSearch}>
           <PixelSearch className="lib-search-mark" />
           <input
-            type="text"
+            type="search"
             placeholder="搜索书名 / 作者"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             className="lib-search-input"
+            aria-label="搜索书名或作者"
           />
-          <button type="submit" className="lib-search-btn">检索</button>
+          <button type="submit" className="lib-search-btn" aria-label="检索">检索</button>
         </form>
 
         {/* 分类：三大学科殿 */}
@@ -182,6 +183,7 @@ export default function BookGrid({ initialCategory, initialSearch }: Props) {
           <button
             className={`lib-cat-all ${!category ? "is-active" : ""}`}
             onClick={() => { setCategory(""); setPage(1); }}
+            aria-pressed={!category}
           >
             <span className="lib-cat-all-glyph">◆</span>全部
           </button>
@@ -200,6 +202,7 @@ export default function BookGrid({ initialCategory, initialSearch }: Props) {
                       key={sub.id}
                       className={`lib-cat-item ${category === sub.id ? "is-active" : ""}`}
                       onClick={() => { setCategory(sub.id); setPage(1); }}
+                      aria-pressed={category === sub.id}
                     >
                       {sub.name}
                     </button>

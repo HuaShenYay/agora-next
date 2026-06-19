@@ -3,9 +3,15 @@
 // 必须在登录态下访问
 // ====================
 
+import { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { AccountForm } from "@/components/client/auth/AccountForm";
+
+export const metadata: Metadata = {
+  title: "账户设置",
+  description: "管理集市 Agora 账户信息",
+};
 
 export default async function AccountPage() {
   const supabase = await getSupabaseServer();

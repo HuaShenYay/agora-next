@@ -20,9 +20,12 @@ const RATE_LIMITS: Record<string, { windowMs: number; max: number }> = {
 const buckets = new Map<string, { count: number; resetAt: number }>();
 
 function getClientIp(req: NextRequest): string {
+  // 信任顺序：平台注入头 > 反代头 > 兜底
+  // x-forwarded-for 客户端可伪造，放最后；Vercel 的 x-vercel-forwarded-for 由平台设置可信
   return (
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    req.headers.get("x-vercel-forwarded-for")?.split(",")[0]?.trim() ||
     req.headers.get("x-real-ip") ||
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     "unknown"
   );
 }
@@ -32,7 +35,7 @@ function checkRateLimit(req: NextRequest): NextResponse | null {
   const matchRoute = Object.keys(RATE_LIMITS).find((r) => pathname.startsWith(r));
   if (!matchRoute) return null;
 
-  const limit = RATE_LIMITS[matchRoute];
+  const limit = RATE_LIMITS[matchRoute]!;
   const ip = getClientIp(req);
   const key = `${matchRoute}:${ip}`;
   const now = Date.now();

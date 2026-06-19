@@ -1,0 +1,754 @@
+/* ====================
+   LIBRARY INDEX — Pixel Athens · v3 藏书殿
+   神殿场域 · 像素插画 · 金色律动 · 双字体对比
+   ==================== */
+
+@keyframes lib-pixel-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+@keyframes lib-pixel-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+@keyframes lib-card-enter {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes lib-skeleton-sweep {
+  0% { background-position: -150% 0; }
+  100% { background-position: 250% 0; }
+}
+@keyframes lib-bubble {
+  0%, 100% { opacity: 0.3; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-1px); }
+}
+
+.lib {
+  --lib-fg: var(--text-primary, #2c2416);
+  --lib-fg-2: var(--text-secondary, #5c4f3c);
+  --lib-fg-3: var(--text-tertiary, #9a8b76);
+  --lib-line: var(--border-soft, rgba(42, 34, 24, 0.08));
+  --lib-line-strong: var(--border-strong, rgba(42, 34, 24, 0.3));
+  --lib-accent: var(--accent-gold, #c9a86c);
+  --lib-accent-dark: var(--accent-ochre, #c9a44c);
+  --lib-bg: var(--bg-primary, #f8f6f1);
+  --lib-card-bg: var(--bg-secondary, #f0ece3);
+  --lib-ink: var(--bg-dark, #2c2416);
+  /* 渐变金 — 与主页 hero-gold 同源 */
+  --lib-gold-grad: var(--gradient-gold);
+  /* 学科色：默认墨 */
+  --lib-band: var(--lib-fg-3);
+
+  font-family: var(--font-pixel);
+  color: var(--lib-fg);
+  background: var(--lib-bg);
+  margin: 0 auto;
+  padding: 0 0 6rem;
+  max-width: 1280px;
+  min-height: 80vh;
+  position: relative;
+}
+
+/* ====== Hero 藏书殿 ====== */
+.lib-header {
+  position: relative;
+  padding: 4rem 6vw 2.75rem;
+  margin-bottom: 0;
+  border-bottom: 3px solid var(--lib-ink);
+  background: var(--gradient-warm);
+  overflow: hidden;
+}
+/* 像素点阵纹理底（呼应主页神殿石纹）*/
+.lib-header-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(0deg, transparent 0, transparent 3px, rgba(42,34,24,0.025) 3px, rgba(42,34,24,0.025) 4px),
+    radial-gradient(circle at 90% 20%, rgba(201,168,108,0.12) 0%, transparent 45%);
+  pointer-events: none;
+}
+
+/* 大型像素神殿 — 右侧主角，复用 column-grow / roof-shimmer 动效 */
+.lib-header-temple {
+  position: absolute;
+  top: 2.5rem;
+  right: 4vw;
+  width: 140px;
+  height: auto;
+  color: var(--lib-ink);
+  opacity: 0.85;
+  animation: lib-pixel-float 5s ease-in-out infinite;
+  filter: drop-shadow(3px 3px 0 rgba(201,164,76,0.25));
+  pointer-events: none;
+  z-index: 1;
+}
+
+.lib-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 1.75rem;
+  position: relative;
+  z-index: 2;
+  gap: 2rem;
+}
+
+.lib-header-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 36rem;
+}
+
+.lib-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  align-self: flex-start;
+  color: var(--lib-ink);
+  font-family: var(--font-hero);
+  font-size: 0.6rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  padding: 0.25rem 0.6rem;
+  border: 1.5px solid var(--lib-ink);
+  background: var(--lib-card-bg);
+  box-shadow: 2px 2px 0 0 var(--lib-accent-dark);
+}
+
+/* 标题：金色渐变（与主页 hero-gold 同源）*/
+.lib-title {
+  font-family: var(--font-hero);
+  font-size: clamp(2.8rem, 8vw, 5rem);
+  font-weight: bold;
+  line-height: 0.95;
+  letter-spacing: 0.01em;
+  margin: 0;
+  color: var(--lib-ink);
+}
+.lib-title-accent {
+  background: var(--lib-gold-grad);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.lib-subtitle {
+  font-family: var(--font-serif);
+  font-size: 0.92rem;
+  color: var(--lib-fg-2);
+  line-height: 1.85;
+  margin: 0.25rem 0 0;
+  max-width: 30rem;
+}
+
+/* 统计盒：数字用金色渐变 */
+.lib-stats {
+  display: inline-flex;
+  align-items: stretch;
+  border: 2px solid var(--lib-ink);
+  background: var(--lib-card-bg);
+  box-shadow: 4px 4px 0 0 var(--lib-ink);
+  flex-shrink: 0;
+}
+.lib-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  padding: 0.65rem 1.3rem;
+  min-width: 5rem;
+}
+.lib-stat + .lib-stat { border-left: 2px solid var(--lib-ink); }
+.lib-stat-value {
+  font-family: var(--font-hero);
+  font-size: 2.4rem;
+  font-weight: bold;
+  line-height: 1;
+  background: var(--lib-gold-grad);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-variant-numeric: tabular-nums;
+  display: block;
+}
+.lib-stat-label {
+  font-family: var(--font-pixel);
+  font-size: 0.65rem;
+  color: var(--lib-fg-3);
+  letter-spacing: 0.08em;
+}
+
+/* ====== 搜索 ====== */
+.lib-search {
+  display: flex;
+  align-items: center;
+  border: 2px solid var(--lib-ink);
+  background: var(--lib-card-bg);
+  box-shadow: 4px 4px 0 0 var(--lib-ink);
+  max-width: 520px;
+  width: 100%;
+  margin-bottom: 2.25rem;
+  transition: box-shadow 0.15s steps(2), transform 0.15s steps(2);
+  position: relative;
+  z-index: 2;
+}
+.lib-search:focus-within {
+  box-shadow: 5px 5px 0 0 var(--lib-accent-dark);
+  transform: translate(-1px, -1px);
+}
+.lib-search-mark {
+  flex-shrink: 0;
+  padding: 0 0.8rem 0 1rem;
+  color: var(--lib-fg-3);
+  display: flex;
+  align-items: center;
+  transition: color 0.15s steps(2);
+}
+.lib-search:focus-within .lib-search-mark { color: var(--lib-accent-dark); }
+.lib-search-input {
+  flex: 1;
+  border: 0;
+  outline: none;
+  background: transparent;
+  padding: 0.9rem 0.5rem;
+  font-size: 0.95rem;
+  font-family: var(--font-pixel);
+  color: var(--lib-fg);
+}
+.lib-search-input::placeholder { color: var(--lib-fg-3); letter-spacing: 0.05em; }
+.lib-search-btn {
+  border: 0;
+  border-left: 2px solid var(--lib-ink);
+  background: var(--lib-ink);
+  color: var(--lib-card-bg);
+  font-family: var(--font-hero);
+  font-size: 0.85rem;
+  font-weight: bold;
+  letter-spacing: 0.18em;
+  padding: 0.9rem 1.4rem;
+  cursor: pointer;
+  transition: background 0.15s steps(2);
+}
+.lib-search-btn:hover { background: var(--lib-accent-dark); }
+
+/* ====== 分类：三大学科殿 ====== */
+.lib-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: stretch;
+  position: relative;
+  z-index: 2;
+}
+.lib-cat-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 2px solid var(--lib-ink);
+  background: var(--lib-card-bg);
+  color: var(--lib-fg-2);
+  padding: 0.55rem 1.1rem;
+  font-family: var(--font-pixel);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.15s steps(2);
+  white-space: nowrap;
+  box-shadow: 2px 2px 0 0 var(--lib-ink);
+}
+.lib-cat-all-glyph { color: var(--lib-accent-dark); font-size: 0.7rem; }
+.lib-cat-all:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 0 var(--lib-accent-dark);
+  color: var(--lib-fg);
+}
+.lib-cat-all.is-active {
+  background: var(--lib-ink);
+  color: var(--lib-card-bg);
+  box-shadow: 3px 3px 0 0 var(--lib-accent-dark);
+}
+.lib-cat-all.is-active .lib-cat-all-glyph { color: var(--lib-accent-dark); }
+
+.lib-cat-columns { display: contents; }
+
+/* 学科殿：带学科色顶部条 */
+.lib-cat-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.65rem 0.85rem 0.55rem;
+  border: 1.5px solid var(--lib-line-strong);
+  border-top: 4px solid var(--lib-band);
+  background: rgba(248, 246, 241, 0.6);
+  position: relative;
+}
+.lib-cat-group[data-cat="humanities"]      { --lib-band: var(--accent-terracotta, #b87b5c); }
+.lib-cat-group[data-cat="social-science"]  { --lib-band: var(--accent-ochre, #c9a44c); }
+.lib-cat-group[data-cat="natural-science"] { --lib-band: var(--accent-olive, #8b9a5c); }
+
+.lib-cat-group-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-hero);
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--lib-band);
+  font-weight: bold;
+  white-space: nowrap;
+  padding-bottom: 0.1rem;
+}
+.lib-cat-group-label svg { color: var(--lib-band); }
+.lib-bubble-1 { animation: lib-bubble 2s ease-in-out infinite; }
+.lib-bubble-2 { animation: lib-bubble 2s ease-in-out infinite 0.6s; }
+.lib-cat-group-emoji { font-style: normal; font-size: 0.85rem; }
+
+.lib-cat-children { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.lib-cat-item {
+  border: 1.5px solid var(--lib-line-strong);
+  background: var(--lib-card-bg);
+  color: var(--lib-fg-2);
+  padding: 0.32rem 0.7rem;
+  font-family: var(--font-pixel);
+  font-size: 0.74rem;
+  cursor: pointer;
+  transition: all 0.15s steps(2);
+  white-space: nowrap;
+  position: relative;
+}
+.lib-cat-item:hover {
+  border-color: var(--lib-band);
+  color: var(--lib-fg);
+  transform: translate(-1px, -1px);
+  box-shadow: 2px 2px 0 0 var(--lib-band);
+}
+.lib-cat-item.is-active {
+  background: var(--lib-band);
+  border-color: var(--lib-band);
+  color: #fff;
+  box-shadow: 2px 2px 0 0 var(--lib-ink);
+}
+
+/* ====== 元数据行 ====== */
+.lib-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-hero);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--lib-fg-2);
+  margin: 0 6vw 2rem;
+  padding: 0.9rem 0 0.9rem 1rem;
+  border-bottom: 1px solid var(--lib-line);
+  position: relative;
+}
+.lib-meta::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  width: 3px;
+  background: var(--lib-gold-grad);
+}
+.lib-meta-key { color: var(--lib-fg-3); }
+.lib-meta-val {
+  color: var(--lib-fg);
+  background: var(--lib-card-bg);
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--lib-line);
+  font-weight: bold;
+}
+.lib-meta-sep { color: var(--lib-fg-3); margin: 0 0.3rem; }
+
+/* ====== 网格 ====== */
+.lib-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0 6vw;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.75rem;
+}
+
+/* ====== 书卡：书脊卷宗 ====== */
+.lib-card {
+  --lib-band: var(--lib-fg-3);
+  border: 2px solid var(--lib-ink);
+  background: var(--lib-card-bg);
+  box-shadow: 4px 4px 0 0 var(--lib-ink);
+  position: relative;
+  transition: transform 0.2s steps(3), box-shadow 0.2s steps(3);
+  animation: lib-card-enter 0.45s steps(6) both;
+  overflow: hidden;
+}
+.lib-card[data-cat="humanities"]      { --lib-band: var(--accent-terracotta, #b87b5c); }
+.lib-card[data-cat="social-science"]  { --lib-band: var(--accent-ochre, #c9a44c); }
+.lib-card[data-cat="natural-science"] { --lib-band: var(--accent-olive, #8b9a5c); }
+
+.lib-card:hover {
+  transform: translate(-3px, -3px);
+  box-shadow: 7px 7px 0 0 var(--lib-accent-dark);
+}
+
+.lib-card-link {
+  display: flex;
+  flex-direction: column;
+  padding: 1.4rem 1.4rem 1.25rem 1.8rem;
+  text-decoration: none;
+  color: inherit;
+  height: 100%;
+  position: relative;
+}
+
+/* 书脊：左侧学科色带 + 纹理 */
+.lib-card-spine {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  background: var(--lib-band);
+  transition: width 0.2s steps(3);
+  z-index: 1;
+}
+.lib-card-spine-grain {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.18) 0, rgba(255,255,255,0.18) 1px, transparent 1px, transparent 4px),
+    repeating-linear-gradient(0deg, rgba(0,0,0,0.15) 0, rgba(0,0,0,0.15) 1px, transparent 1px, transparent 7px);
+}
+.lib-card:hover .lib-card-spine { width: 9px; }
+
+/* 钢印编号（右上角，像素描边质感）*/
+.lib-card-stamp {
+  position: absolute;
+  top: 1rem;
+  right: 1.2rem;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.12rem;
+  font-family: var(--font-hero);
+  font-size: 0.6rem;
+  font-weight: bold;
+  letter-spacing: 0.12em;
+  color: var(--lib-fg-3);
+  border: 1.5px solid var(--lib-line-strong);
+  padding: 0.2rem 0.45rem;
+  background: var(--lib-bg);
+  font-variant-numeric: tabular-nums;
+  box-shadow: inset 0 -2px 0 0 rgba(42, 34, 24, 0.08);
+  transition: all 0.15s steps(2);
+}
+.lib-card-stamp-hash { color: var(--lib-band); font-size: 0.55rem; }
+.lib-card:hover .lib-card-stamp {
+  border-color: var(--lib-band);
+  color: var(--lib-ink);
+}
+
+.lib-card-body { flex: 1; margin-bottom: 0.9rem; padding-right: 3rem; }
+
+/* 学科小标 */
+.lib-card-dept {
+  display: inline-block;
+  font-family: var(--font-hero);
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--lib-band);
+  font-weight: bold;
+  margin-bottom: 0.45rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1.5px solid var(--lib-band);
+}
+
+/* 书名：衬线大字，金色 hover */
+.lib-card-title {
+  font-family: var(--font-serif);
+  font-size: 1.45rem;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0;
+  margin: 0 0 0.4rem;
+  color: var(--lib-ink);
+  transition: color 0.15s steps(2);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.lib-card:hover .lib-card-title {
+  background: var(--lib-gold-grad);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.lib-card-original {
+  font-family: var(--font-serif);
+  font-size: 0.85rem;
+  color: var(--lib-fg-3);
+  font-style: italic;
+  margin: 0 0 0.65rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.lib-card-author {
+  font-family: var(--font-pixel);
+  font-size: 0.74rem;
+  color: var(--lib-fg-2);
+  letter-spacing: 0.05em;
+  margin: 0.55rem 0 0;
+}
+
+/* 底部 */
+.lib-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--lib-line);
+  flex-wrap: wrap;
+}
+.lib-card-tags { display: flex; gap: 0.3rem; }
+.lib-card-tag {
+  font-family: var(--font-hero);
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  padding: 0.18rem 0.5rem;
+  border: 1px solid var(--lib-line-strong);
+  color: var(--lib-fg-2);
+  background: var(--lib-bg);
+  transition: all 0.15s steps(2);
+}
+.lib-card:hover .lib-card-tag { border-color: var(--lib-band); color: var(--lib-band); }
+.lib-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-family: var(--font-hero);
+  font-size: 0.62rem;
+  color: var(--lib-fg-3);
+  letter-spacing: 0.06em;
+}
+.lib-card-meta-dot { opacity: 0.4; }
+
+/* 箭头 */
+.lib-card-arrow {
+  position: absolute;
+  bottom: 1.25rem;
+  right: 1.2rem;
+  font-size: 1.1rem;
+  color: var(--lib-fg-3);
+  transition: transform 0.15s steps(2), color 0.15s steps(2);
+  font-family: var(--font-pixel);
+}
+.lib-card:hover .lib-card-arrow {
+  color: var(--lib-accent-dark);
+  transform: translateX(4px);
+}
+
+/* ====== 骨架 ====== */
+.lib-grid-skeleton { display: grid; }
+.lib-card-skeleton {
+  border: 2px solid var(--lib-line-strong);
+  background: var(--lib-card-bg);
+  padding: 1.4rem 1.4rem 1.25rem 1.8rem;
+  position: relative;
+  overflow: hidden;
+  min-height: 220px;
+  opacity: 0;
+  animation: lib-card-enter 0.4s steps(6) forwards;
+}
+.lib-card-skeleton-band {
+  position: absolute; left: 0; top: 0; bottom: 0; width: 6px;
+  background: var(--lib-line-strong);
+}
+.lib-card-skeleton-line {
+  height: 12px; margin: 0.55rem 0;
+  background: linear-gradient(90deg, rgba(42,34,24,0.04) 0%, rgba(42,34,24,0.12) 50%, rgba(42,34,24,0.04) 100%);
+  background-size: 250% 100%;
+  animation: lib-skeleton-sweep 1.6s linear infinite;
+}
+.lib-card-skeleton-line.w-40 { width: 38%; margin-bottom: 1rem; height: 10px; }
+.lib-card-skeleton-line.w-80 { width: 82%; height: 20px; }
+.lib-card-skeleton-line.w-60 { width: 58%; }
+.lib-card-skeleton-footer {
+  height: 10px; margin-top: 1.5rem; width: 55%;
+  background: linear-gradient(90deg, rgba(42,34,24,0.04) 0%, rgba(42,34,24,0.12) 50%, rgba(42,34,24,0.04) 100%);
+  background-size: 250% 100%;
+  animation: lib-skeleton-sweep 1.6s linear infinite;
+}
+
+/* ====== 空态 ====== */
+.lib-state {
+  text-align: center;
+  padding: 5.5rem 2rem;
+  margin: 0 6vw 0;
+  border: 2px solid var(--lib-ink);
+  background: var(--lib-card-bg);
+  box-shadow: 6px 6px 0 0 var(--lib-ink);
+}
+.lib-state-icon {
+  color: var(--lib-fg-3);
+  opacity: 0.6;
+  margin: 0 auto 1.5rem;
+  display: block;
+  animation: lib-pixel-blink 2.6s steps(2) infinite;
+}
+.lib-state-title {
+  font-family: var(--font-hero);
+  font-size: 1.8rem;
+  font-weight: bold;
+  letter-spacing: 0.08em;
+  margin: 0 0 0.75rem;
+  color: var(--lib-ink);
+}
+.lib-state-desc {
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  color: var(--lib-fg-2);
+  margin: 0 0 1.75rem;
+}
+.lib-state-cta {
+  display: inline-block;
+  padding: 0.75rem 1.6rem;
+  background: var(--lib-ink);
+  color: var(--lib-card-bg);
+  text-decoration: none;
+  font-family: var(--font-hero);
+  font-size: 0.85rem;
+  font-weight: bold;
+  letter-spacing: 0.12em;
+  border: 2px solid var(--lib-ink);
+  box-shadow: 3px 3px 0 0 var(--lib-accent-dark);
+  transition: all 0.15s steps(2);
+}
+.lib-state-cta:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 0 var(--lib-accent-dark);
+}
+
+/* ====== 分页 ====== */
+.lib-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.75rem;
+  margin-top: 3.5rem;
+  padding: 0 6vw;
+}
+.lib-page-btn {
+  border: 2px solid var(--lib-ink);
+  background: var(--lib-card-bg);
+  color: var(--lib-ink);
+  padding: 0.55rem 1.1rem;
+  cursor: pointer;
+  font-family: var(--font-hero);
+  font-size: 0.78rem;
+  font-weight: bold;
+  letter-spacing: 0.12em;
+  box-shadow: 3px 3px 0 0 var(--lib-ink);
+  transition: all 0.15s steps(2);
+}
+.lib-page-btn:hover:not(:disabled) {
+  transform: translate(-1px, -1px);
+  background: var(--lib-ink);
+  color: var(--lib-card-bg);
+  box-shadow: 4px 4px 0 0 var(--lib-accent-dark);
+}
+.lib-page-btn:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+.lib-page-btn:disabled {
+  color: var(--lib-fg-3);
+  border-color: var(--lib-fg-3);
+  box-shadow: 2px 2px 0 0 var(--lib-fg-3);
+  cursor: not-allowed;
+}
+.lib-page-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 130px;
+}
+.lib-page-indicator {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  font-variant-numeric: tabular-nums;
+}
+.lib-page-current {
+  font-family: var(--font-hero);
+  font-size: 1.7rem;
+  font-weight: bold;
+  background: var(--lib-gold-grad);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.lib-page-divider { color: var(--lib-fg-3); font-family: var(--font-hero); }
+.lib-page-total { font-family: var(--font-hero); font-size: 1rem; color: var(--lib-fg-2); }
+.lib-page-progress {
+  width: 100%; height: 4px;
+  background: repeating-linear-gradient(90deg, var(--lib-line-strong) 0, var(--lib-line-strong) 2px, transparent 2px, transparent 4px);
+  position: relative;
+}
+.lib-page-progress-fill {
+  height: 100%;
+  background: var(--lib-gold-grad);
+  transition: width 0.25s steps(4);
+}
+
+/* ====== 响应式 ====== */
+@media (max-width: 980px) {
+  .lib-header-temple { width: 96px; opacity: 0.6; top: 1.5rem; }
+}
+@media (max-width: 900px) {
+  .lib-grid { grid-template-columns: repeat(2, 1fr); gap: 1.25rem; }
+  .lib-header { padding: 3rem 4vw 2rem; }
+  .lib-header-temple { display: none; }
+  .lib-header-top { flex-direction: column; align-items: flex-start; gap: 1.25rem; }
+  .lib-search { max-width: 100%; }
+  .lib-cat-columns { display: contents; }
+  .lib-cat-group { flex-basis: 100%; }
+}
+@media (max-width: 768px) {
+  .book-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 600px) {
+  .lib-grid { grid-template-columns: 1fr; padding: 0 4vw; }
+  .lib-header { padding: 2.25rem 4vw 1.75rem; }
+  .lib-title { font-size: 2.2rem; }
+  .lib-stats { align-self: stretch; }
+  .lib-stat { flex: 1; }
+  .lib-cat-group { flex-basis: 100%; padding: 0.5rem 0.7rem; }
+  .lib-cat-item { padding: 0.25rem 0.55rem; font-size: 0.68rem; }
+  .lib-meta { margin: 0 4vw 1.5rem; }
+  .lib-pagination { gap: 1rem; }
+  .lib-page-center { min-width: 90px; }
+  .lib-card-body { padding-right: 2.5rem; }
+}
+
+/* 减少动效 */
+@media (prefers-reduced-motion: reduce) {
+  .lib-header-temple,
+  .lib-card-skeleton-line,
+  .lib-card-skeleton-footer,
+  .lib-state-icon,
+  .lib-bubble-1, .lib-bubble-2 { animation: none; }
+  .lib-card { animation: none; opacity: 1; }
+}

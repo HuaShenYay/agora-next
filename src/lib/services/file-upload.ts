@@ -133,14 +133,6 @@ setInterval(() => {
   }
 }, 5 * 60 * 1000).unref?.();
 
-export function getCacheForResume(key: string): CacheEntry | null {
-  return getCache(key);
-}
-
-export function purgeCache(key: string): void {
-  delCache(key);
-}
-
 // ====================
 // 步骤 1: 提交（POST /api/upload 调用）
 // ====================

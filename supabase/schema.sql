@@ -41,6 +41,19 @@ CREATE INDEX IF NOT EXISTS idx_books_language ON books(language);
 CREATE INDEX IF NOT EXISTS idx_books_categories ON books USING GIN(categories);
 CREATE INDEX IF NOT EXISTS idx_books_tags ON books USING GIN(tags);
 CREATE INDEX IF NOT EXISTS idx_books_created_at ON books(created_at DESC);
+-- 按上传者查询（我的上传 / 计数）
+CREATE INDEX IF NOT EXISTS idx_books_uploader_id ON books(uploader_id);
+-- 搜索加速（精确/前缀匹配；ilike 中缀匹配需 pg_trgm GIN 索引，见下方扩展）
+CREATE INDEX IF NOT EXISTS idx_books_title ON books(title);
+CREATE INDEX IF NOT EXISTS idx_books_author ON books(author);
+CREATE INDEX IF NOT EXISTS idx_books_title_original ON books(title_original);
+
+-- pg_trgm 扩展：加速 ilike 中缀搜索（title / author / title_original）
+-- 若 Supabase 项目未启用该扩展，下方语句会失败；可手动在 Dashboard SQL Editor 执行。
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE INDEX IF NOT EXISTS idx_books_title_trgm ON books USING GIN(title gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_books_author_trgm ON books USING GIN(author gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_books_title_original_trgm ON books USING GIN(title_original gin_trgm_ops);
 
 -- ====================
 -- 幂等迁移：补齐新增列（兼容已存在的旧 books 表）
@@ -73,7 +86,16 @@ CREATE TABLE IF NOT EXISTS profiles (
 );
 
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow all access for demo" ON profiles FOR ALL USING (true) WITH CHECK (true);
+-- profiles RLS：公开只读，用户只能改自己的资料
+DROP POLICY IF EXISTS "Allow all access for demo" ON profiles;
+DROP POLICY IF EXISTS "profiles_select_public" ON profiles;
+DROP POLICY IF EXISTS "profiles_modify_owner" ON profiles;
+CREATE POLICY "profiles_select_public" ON profiles
+  FOR SELECT USING (true);
+CREATE POLICY "profiles_modify_owner" ON profiles
+  FOR ALL
+  USING (auth.uid() = id)
+  WITH CHECK (auth.uid() = id);
 
 -- ====================
 -- 触发器：新 auth.users 注册时自动创建 profile
@@ -180,7 +202,8 @@ CREATE INDEX IF NOT EXISTS idx_prs_created_at ON pull_requests(created_at DESC);
 
 -- ====================
 -- Row Level Security (RLS) 策略
--- 演示阶段：允许所有匿名读写（后续可细化）
+-- 匿名用户：只读（SELECT）
+-- Service Role：绕过 RLS（用于服务端写操作：上传、AI 标注）
 -- ====================
 ALTER TABLE books ENABLE ROW LEVEL SECURITY;
 ALTER TABLE chapters ENABLE ROW LEVEL SECURITY;
@@ -188,9 +211,44 @@ ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE translations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE pull_requests ENABLE ROW LEVEL SECURITY;
 
--- 创建允许所有操作的策略（演示阶段）
-CREATE POLICY "Allow all access for demo" ON books FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow all access for demo" ON chapters FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow all access for demo" ON categories FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow all access for demo" ON translations FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow all access for demo" ON pull_requests FOR ALL USING (true) WITH CHECK (true);
+-- 匿名只读策略（anon key 只能 SELECT）
+CREATE POLICY "anon_select_books" ON books FOR SELECT USING (true);
+CREATE POLICY "anon_select_chapters" ON chapters FOR SELECT USING (true);
+CREATE POLICY "anon_select_categories" ON categories FOR SELECT USING (true);
+CREATE POLICY "anon_select_translations" ON translations FOR SELECT USING (true);
+CREATE POLICY "anon_select_pull_requests" ON pull_requests FOR SELECT USING (true);
+
+-- Service Role 自动绕过 RLS（无需额外策略）
+-- 所有 INSERT/UPDATE/DELETE 通过 SUPABASE_SERVICE_ROLE_KEY 执行
+
+-- ====================
+-- updated_at 自动维护触发器
+-- 避免依赖应用层记得手动设 updated_at
+-- ====================
+CREATE OR REPLACE FUNCTION set_updated_at()
+RETURNS TRIGGER AS $
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_books_updated_at ON books;
+CREATE TRIGGER trg_books_updated_at
+  BEFORE UPDATE ON books
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+DROP TRIGGER IF EXISTS trg_profiles_updated_at ON profiles;
+CREATE TRIGGER trg_profiles_updated_at
+  BEFORE UPDATE ON profiles
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+DROP TRIGGER IF EXISTS trg_translations_updated_at ON translations;
+CREATE TRIGGER trg_translations_updated_at
+  BEFORE UPDATE ON translations
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+DROP TRIGGER IF EXISTS trg_pull_requests_updated_at ON pull_requests;
+CREATE TRIGGER trg_pull_requests_updated_at
+  BEFORE UPDATE ON pull_requests
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();

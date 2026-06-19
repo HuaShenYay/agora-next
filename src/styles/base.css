@@ -1,0 +1,214 @@
+/* ====================
+   Skip Link (Accessibility)
+   ==================== */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  z-index: 10000;
+  padding: 0.5rem 1rem;
+  background: var(--accent-gold);
+  color: var(--text-primary);
+  font-family: var(--font-pixel);
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+.skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+  width: auto;
+  height: auto;
+}
+
+/* ====================
+   字体定义
+   ==================== */
+@font-face {
+  font-family: "ChillBitmap7";
+  src:
+    url("/fonts/ChillBitmap_7px.ttf") format("truetype"),
+    url("/fonts/ChillBitmapSE_7px.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "ChillBitmap16";
+  src:
+    url("/fonts/ChillBitmap_16px.ttf") format("truetype"),
+    url("/fonts/ChillBitmapSE_16px.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ====================
+   CSS 变量 - 古希腊雅典风格
+   灵感：帕特农神庙大理石、蜂蜜金、陶土红
+   ==================== */
+:root {
+  /* 主色调 - 大理石米白 */
+  --bg-primary: #f8f6f1;
+  --bg-secondary: #f0ece3;
+  --bg-tertiary: #e8e2d5;
+  --bg-dark: #2c2416;
+
+  /* 文字色 - 深棕墨色 */
+  --text-primary: #2a2218;
+  --text-secondary: #4a3f2e;
+  --text-tertiary: #6b5d4b;
+  --text-light: #8b7d6b;
+
+  /* 强调色 - 古希腊风格 */
+  --accent-gold: #c9a86c;
+  --accent-honey: #d4b87a;
+  --accent-terracotta: #b87b5c;
+  --accent-ochre: #c9a44c;
+  --accent-bronze: #a88a5c;
+  --accent-clay: #c4a77d;
+  --accent-olive: #8b9a5c;
+  --accent-rust: #a65d45;
+
+  /* 渐变 */
+  --gradient-gold: linear-gradient(
+    135deg,
+    #c9a86c 0%,
+    #d4b87a 50%,
+    #c9a44c 100%
+  );
+  --gradient-warm: linear-gradient(
+    180deg,
+    #f8f6f1 0%,
+    #f0ece3 50%,
+    #e8e2d5 100%
+  );
+
+  /* 边框 */
+  --border-soft: rgba(42, 34, 24, 0.08);
+  --border-medium: rgba(42, 34, 24, 0.15);
+  --border-strong: rgba(42, 34, 24, 0.3);
+
+  /* 字体 */
+  --font-hero: "ChillBitmap7", monospace;
+  --font-pixel: "ChillBitmap16", monospace;
+  --font-serif: "Songti SC", "SimSun", "STSongti", Georgia, serif;
+
+  /* 过渡 */
+  --transition-fast: 0.2s ease;
+  --transition-medium: 0.4s ease;
+}
+
+/* ====================
+   马赛克溶解载入动画 - 快速简洁
+   ==================== */
+.mosaic-loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-primary);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: opacity 0.4s ease;
+}
+
+.mosaic-loader.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mosaic-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+  grid-template-rows: repeat(auto-fill, minmax(50px, 1fr));
+  gap: 0;
+}
+
+.mosaic-block {
+  background: var(--gradient-gold);
+  transition:
+    transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    opacity 0.35s ease;
+  transform: scale(1);
+  opacity: 1;
+}
+
+.mosaic-block.dissolving {
+  transform: scale(0);
+  opacity: 0;
+}
+
+/* 快速随机溶解 */
+.mosaic-block.fast {
+  transition-duration: 0.2s;
+}
+.mosaic-block.medium {
+  transition-duration: 0.35s;
+}
+.mosaic-block.slow {
+  transition-duration: 0.5s;
+}
+
+.loader-logo {
+  font-family: var(--font-pixel);
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  letter-spacing: 0.1em;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.mosaic-loader:not(.hidden) .loader-logo {
+  opacity: 1;
+  transition-delay: 0.1s;
+}
+
+/* 页面内容初始状态 */
+.page {
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.page.loaded {
+  opacity: 1;
+}
+
+/* ====================
+   基础重置
+   ==================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-pixel);
+  background: var(--gradient-warm);
+  color: var(--text-primary);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}

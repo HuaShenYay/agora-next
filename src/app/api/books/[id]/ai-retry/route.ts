@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { retryEnrichJob } from "@/lib/services/ai-enrich";
+import { safeEqual } from "@/lib/utils/crypto-safe";
 
 export async function POST(
   request: NextRequest,
@@ -17,7 +18,7 @@ export async function POST(
     return NextResponse.json({ error: "功能已关闭" }, { status: 403 });
   }
   const authHeader = request.headers.get("x-upload-password");
-  if (authHeader !== uploadPassword) {
+  if (!authHeader || !safeEqual(authHeader, uploadPassword)) {
     return NextResponse.json({ error: "未授权" }, { status: 401 });
   }
 

@@ -68,7 +68,7 @@ export function parseEnrichResult(raw: string): AIEnrichResult {
   try {
     // 兼容部分厂商偶发多包裹 ```json\n\n... \n```
     const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)```/i);
-    const text = fenced ? fenced[1].trim() : raw.trim();
+    const text = fenced ? fenced[1]!.trim() : raw.trim();
     json = JSON.parse(text);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);

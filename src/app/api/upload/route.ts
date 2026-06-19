@@ -9,6 +9,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { processUpload } from "@/lib/services/file-upload";
+import { safeEqual } from "@/lib/utils/crypto-safe";
 
 export const maxDuration = 180; // 3 分钟：MinerU 单本可能 1-2 分钟
 
@@ -19,7 +20,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "上传功能已关闭" }, { status: 403 });
   }
   const authHeader = request.headers.get("x-upload-password");
-  if (authHeader !== uploadPassword) {
+  if (!authHeader || !safeEqual(authHeader, uploadPassword)) {
     return NextResponse.json({ error: "未授权：请提供上传密码" }, { status: 401 });
   }
 

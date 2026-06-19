@@ -310,7 +310,7 @@ export async function pollTask(
         detail: json.msg,
       });
     }
-    const item = json.data.extract_result[0];
+    const item = json.data.extract_result[0]!;
     const state = (item.state ?? "pending") as TaskState;
 
     let progress = lastProgress;
