@@ -27,6 +27,10 @@ export const metadata: Metadata = {
     follow: true,
   },
   keywords: ["开源翻译", "AI重译", "经典书籍", "公共知识库", "协作翻译"],
+  icons: {
+    icon: "/icon.svg",
+  },
+  themeColor: "#2c2416",
 };
 
 export default function RootLayout({

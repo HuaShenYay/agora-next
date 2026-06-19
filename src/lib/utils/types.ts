@@ -36,6 +36,8 @@ export type BookSummary = Pick<
   | "title"
   | "titleOriginal"
   | "author"
+  | "description"
+  | "shortDescription"
   | "language"
   | "format"
   | "categories"
