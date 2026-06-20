@@ -28,17 +28,17 @@ export default function BookCard({ book, index, PixelBookIcon }: Props) {
       style={{ animationDelay: `${((index - 1) % 20) * 40}ms` }}
     >
       <a href={`/books/${book.id}`} className="lib-card-h-link">
-        {/* 左侧像素书图标 */}
+        {/* 左侧像素书图标区 */}
         <div className="lib-card-h-icon">
           <PixelBookIcon className="lib-card-h-pixel-book" />
-          <span className="lib-card-h-index">No {indexLabel}</span>
         </div>
 
         {/* 右侧内容 */}
         <div className="lib-card-h-content">
-          <h3 className="lib-card-h-title">
-            {book.title}
-          </h3>
+          <div className="lib-card-h-header">
+            <h3 className="lib-card-h-title">{book.title}</h3>
+            <span className="lib-card-h-index">No {indexLabel}</span>
+          </div>
           {book.description && (
             <p className="lib-card-h-desc">{book.shortDescription || book.description}</p>
           )}
