@@ -4,7 +4,9 @@
 
 import { getSupabase } from "@/lib/supabase/client";
 import { getAdminSupabase } from "@/lib/supabase/admin";
+import { DEFAULT_CATEGORIES } from "@/lib/utils/constants";
 import type { Book, BookSummary } from "@/lib/utils/types";
+import { CategoryService } from "@/lib/utils/category-service";
 
 // ====================
 // AI 元数据类型
@@ -38,6 +40,11 @@ interface BookRow {
   uploader_id: string | null;
   cover_url: string | null;
   content_markdown: string | null;
+  chapter_count: number | null;
+  fork_count: number | null;
+  pr_count: number | null;
+  merged_pr_count: number | null;
+  classification_status: Book["classificationStatus"] | null;
   ai_status: string | null;
   ai_metadata: AIMetadata | null;
   created_at: string;
@@ -79,13 +86,13 @@ function rowToBook(row: BookRow): Book {
     language: (aiStatus === "done" && aiLanguage) ? aiLanguage : row.language ?? "en",
     categories: (aiStatus === "done" && aiCategories) ? aiCategories : row.categories ?? [],
     tags: (aiStatus === "done" && ai.subTags && ai.subTags.length > 0) ? ai.subTags : row.tags ?? [],
-    chapterCount: 0,
+    chapterCount: row.chapter_count ?? 0,
     uploaderId: row.uploader_id ?? "anonymous",
-    forkCount: 0,
-    prCount: 0,
-    mergedPrCount: 0,
+    forkCount: row.fork_count ?? 0,
+    prCount: row.pr_count ?? 0,
+    mergedPrCount: row.merged_pr_count ?? 0,
     status: row.status ?? "active",
-    classificationStatus: "pending",
+    classificationStatus: row.classification_status ?? "pending",
     coverUrl: row.cover_url ?? undefined,
     contentMarkdown: row.content_markdown ?? undefined,
     createdAt: row.created_at ?? new Date().toISOString(),
@@ -188,6 +195,43 @@ function buildSearchFilter(term: string): string {
   );
 }
 
+/**
+ * 将分类 id 展开为匹配列表：
+ * - 如果是父分类（如 humanities），返回自身 + 其所有子分类 id
+ * - 如果是子分类（如 philosophy），返回自身
+ * 这样无论书存的是 categories=["humanities"] 还是 ["literature"] 都能匹配
+ */
+function resolveCategoryIds(categoryId: string): string[] {
+  const cat = DEFAULT_CATEGORIES.find((c) => c.id === categoryId);
+  if (cat?.children && cat.children.length > 0) {
+    return [categoryId, ...cat.children.map((sub) => sub.id)];
+  }
+  return [categoryId];
+}
+
+// 列表页需要的字段（不包含 content_markdown 全文）
+const BOOK_SUMMARY_COLUMNS = [
+  "id",
+  "title",
+  "title_original",
+  "author",
+  "description",
+  "cover_url",
+  "format",
+  "language",
+  "categories",
+  "tags",
+  "status",
+  "chapter_count",
+  "fork_count",
+  "pr_count",
+  "merged_pr_count",
+  "classification_status",
+  "ai_status",
+  "ai_metadata",
+  "created_at",
+].join(",");
+
 export async function listBooks(filters?: {
   category?: string;
   language?: string;
@@ -196,10 +240,15 @@ export async function listBooks(filters?: {
   pageSize?: number;
 }): Promise<{ books: BookSummary[]; total: number }> {
   const supabase = getSupabase();
-  let query = supabase.from("books").select("*", { count: "exact" });
+  let query = supabase
+    .from("books")
+    .select(BOOK_SUMMARY_COLUMNS, { count: "exact" });
   query = query.eq("status", "active");
   if (filters?.language) query = query.eq("language", filters.language);
-  if (filters?.category) query = query.contains("categories", [filters.category]);
+  if (filters?.category) {
+    const catIds = CategoryService.resolveCategoryIds(filters.category);
+    query = query.overlaps("categories", catIds);
+  }
   if (filters?.search) {
     query = query.or(buildSearchFilter(filters.search));
   }
